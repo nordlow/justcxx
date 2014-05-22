@@ -78,8 +78,8 @@ D damerau_levenshtein(wchar_t s, wchar_t t,
  *
  * \tparam T is typically a \em string type and generally a random access container.
  * \tparam D Distance Precision.
- * \param s First (String) Argument.
- * \param s Second (String) Argument.
+ * \param s_ First (String) Argument.
+ * \param t_ Second (String) Argument.
  *
  * \application Propose grouping (folder) names for of multiple selections of files and
  * suggest to create (if it doesn't exit) and move files to that folder.
