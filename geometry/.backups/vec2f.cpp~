@@ -1,0 +1,226 @@
+#include <float.h>
+
+#include "vec2f.h"
+#include "box2f.hpp"
+
+/* ========================================================================= */
+
+void
+vec2farray_sum(const vec2f * a, const vec2f * b, vec2f * c,
+	       size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    vec2f_sum(&a[i], &b[i], &c[i]);
+  }
+}
+
+void
+vec2farray_sums(const vec2f * a, const float b, vec2f * c,
+ size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    vec2f_sums(&a[i], b, &c[i]);
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void
+vec2farray_rdSpanXY(const vec2f * a, size_t n,
+		    vec2f * min, vec2f * max, vec2f * span)
+{
+  PTEST("Untested\n");
+  min->x = max->x = a[0].x;
+  min->y = max->y = a[0].y;
+  for (size_t i = 1; i < n; i++) {
+    vec2f_min(min, &a[i], min);
+    vec2f_max(max, &a[i], max);
+  }
+  vec2f_diff(max, min, span);
+}
+
+void
+vec2farray_rdSpanX(const vec2f * a, size_t n,
+		   float * min, float * max, float * span)
+{
+  *min = a[0].x;
+  *max = a[0].x;
+  for (size_t i = 1; i < n; i++) {
+    *min = float_min(*min, a[i].x);
+    *max = float_max(*max, a[i].x);
+  }
+  *span = *max - *min;
+}
+
+void
+vec2farray_rdSpanY(const vec2f * a, size_t n,
+		   float * min, float * max, float * span)
+{
+  *min = a[0].y;
+  *max = a[0].y;
+  for (size_t i = 1; i < n; i++) {
+    *min = float_min(*min, a[i].y);
+    *max = float_max(*max, a[i].y);
+  }
+  *span = *max - *min;
+}
+
+void
+vec2farray_rdSpanR(const vec2f * a, size_t n, const vec2f * cen,
+		   float * min, float * max, float * span)
+{
+  PTODO("Measure radial distance of all a from cen\n");
+  *min = a[0].y;
+  *max = a[0].y;
+  for (size_t i = 1; i < n; i++) {
+    *min = float_min(*min, a[i].y);
+    *max = float_max(*max, a[i].y);
+  }
+  *span = *max - *min;
+}
+
+void
+vec2farray_rdCen(const vec2f * a, size_t n, vec2f * cen)
+{
+  vec2f sum = { 0, 0 };
+  for (size_t i = 0; i < n; i++) {
+    sum.x += a[i].x;
+    sum.y += a[i].y;
+  }
+  cen->x = sum.x / n;
+  cen->y = sum.y / n;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void
+vec2farray_shuffle(vec2f * a, size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    size_t j = rand() % n;
+    vec2f_swap(&a[i], &a[j]);
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void
+vec2farray_linterpol(const vec2f * src, float prg, const vec2f * dst,
+                     vec2f * curr, size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    vec2f_linterpol(&src[i], prg, &dst[i], &curr[i]);
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+int vec2f_poly_covers_point(const vec2f * vtx, size_t vtxN,
+			    const vec2f * point)
+{
+  int ret = 1;
+
+  if (vtxN < 3) { PWARN("vtxN < 3\n"); return 0; }
+
+  for (size_t i = 0; i < vtxN; i++) { /* for each vertex index i */
+    size_t j = i+1;		/* next vertex index */
+    if (j == vtxN) { j = 0; } /* wrap around */
+
+    vec2f side;			/* side vector */
+    vec2f_diff(&vtx[j], &vtx[i], &side); /* first => next */
+
+    vec2f norm;			/* unnormalized normal */
+    vec2f_rot90(&side, &norm);	/* normal vector orthogonal to side vector */
+
+    vec2f mpv;			/* mouse point vector */
+    vec2f_diff(point, &vtx[i], &mpv); /* first => mouse point */
+
+    const float dot = vec2f_dot(&norm, &mpv);
+    if (dot < 0) { /* for left-handed x-y coordinate system use > 0 */
+      ret = 0;
+    } else {
+    }
+  }
+
+  return ret;
+}
+
+size_t vec2farray_nearest(const vec2f * vtx, size_t vtxN,
+			    const vec2f * point)
+{
+  float min_dist = FLT_MAX;	/* minimum distance */
+  size_t min_i = 0;		/* index to closest vertex */
+  for (size_t i = 0; i < vtxN; i++) {
+    float dist = vec2f_dist2(point, &vtx[i]);
+    if (i == 0) {
+      min_dist = dist; min_i = 0;
+    } else {
+      if (min_dist > dist) {
+	min_dist = dist; min_i = i;
+      }
+    }
+  }
+  return min_i;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void
+vec2f_cosin(vec2f * tab, size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    vec2f_cosinAt(&tab[i], (float)M_2PI*i/n);
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+int
+chv_enc_vec2farray(chv_t * chv, const vec2f * a, size_t vtxN)
+{
+  int ret = 0;
+  for (size_t i = 0; i < vtxN; i++) {
+    ret += chv_enc_vec2f(&a[i], chv);
+  }
+  return ret;
+}
+
+int
+chv_dec_vec2farray(chv_t * chv, vec2f * a, size_t vtxN)
+{
+  int cnt = 0, ret = 0;
+  for (size_t i = 0; i < vtxN; i++) {
+    if ((ret = chv_dec_vec2f(&a[i], chv)) >= 0) cnt += ret; else return ret;
+  }
+  return cnt;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void
+vec2f_fprintfv(FILE * stream, const vec2f * a, size_t n)
+{
+  fprintf(stream, "[");
+  for (size_t i = 0; i < n; i++) {
+    if (i > 0) {
+      fprintf(stream, ",");
+    }
+    fprintf(stream, "[%f,%f]", a[i].x, a[i].y);
+  }
+  fprintf(stream, "]");
+}
+
+void
+vec2farray_fprint(FILE * stream, const vec2f * in, size_t n)
+{
+  for (size_t i = 0; i < n; i++) {
+    vec2f_fprint(stream, &in[i]);
+    if (i < n - 1) {
+      putc(' ', stream);
+    } else {
+      putc('\n', stream);
+    }
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */

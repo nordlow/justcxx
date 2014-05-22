@@ -1,0 +1,106 @@
+/*!
+ * \file vec2us.hpp
+ * \brief Two-dimensional Vector of ushorts.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+#include "utils.h"
+#include "chv.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of ushorts.
+ */
+typedef struct
+{
+  ushort x;			/**< X Coordinate. */
+  ushort y;			/**< Y Coordinate. */
+} vec2us;
+
+/*! Set \p a to the vector [\p x, \p y] */
+static inline void
+vec2us_set(vec2us * a, ushort x, ushort y)
+{
+  a->x = x;
+  a->y = y;
+}
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline ushort
+vec2us_at(const vec2us * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec2us_fprint(FILE * stream, const vec2us * a)
+{
+  fprintf(stream, "[%5d,%5d]", a->x, a->y);
+}
+
+static inline void
+vec2us_print(const vec2us * a)
+{
+  vec2us_fprint(stdout, a);
+}
+
+void
+vec2usarray_fprint(FILE * stream, const vec2us * a, int n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec2us(const vec2us * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_u16be(chv, &a->x);
+  ret += chv_enc_u16be(chv, &a->y);
+  return ret;
+}
+
+static inline int
+chv_dec_vec2us(vec2us * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_u16be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_u16be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+static inline int
+chv_enc_vec2usarray(const vec2us * a, size_t vtxN, chv_t * chv)
+{
+  int ret = 0;
+  for (size_t i = 0; i < vtxN; i++) {
+    ret += chv_enc_vec2us(&a[i], chv);
+  }
+  return ret;
+}
+
+static inline int
+chv_dec_vec2usarray(vec2us * a, size_t vtxN, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  for (size_t i = 0; i < vtxN; i++) {
+    if ((ret = chv_dec_vec2us(&a[i], chv)) >= 0) cnt += ret; else return ret;
+  }
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

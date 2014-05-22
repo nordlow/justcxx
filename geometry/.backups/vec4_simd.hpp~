@@ -1,0 +1,144 @@
+/*!
+ * \file vec4_simd.hpp
+ * \brief SIMD Programming on 4D-Vectors.
+ * \author Copyright (C) 2007 Per Nordlöw (per.nordlow@gmail.com)
+ * \see http://gcc.gnu.org/onlinedocs/gcc-3.3.1/gcc/Target-Builtins.html#Target%20Builtins
+ */
+
+#pragma once
+
+#include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+typedef int vec4i __attribute__ ((vector_size (4*sizeof(int))));
+typedef short vec8s __attribute__ ((vector_size (8*sizeof(short))));
+
+typedef float vec4f __attribute__ ((vector_size (4*sizeof(float))));
+
+#define inline inline extern __attribute__((always_inline))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Calculate <em>Pointwise Equality</em> of vA and vB. */
+inline int vec4i_all_eq(vec4i vA, vec4i vB)
+{
+#if defined(__ALTIVEC__)	/* AltiVec */
+  return vec_all_eq((vector int)vA, (vector int)vB);
+#else  /* Scalar */
+  int * s1 = (int*)&vA;
+  int * s2 = (int*)&vB;
+  return (s1[0] == s2[0] &&
+	  s1[1] == s2[1] &&
+	  s1[2] == s2[2] &&
+	  s1[3] == s2[3]);
+#endif
+}
+
+/*! Calculate <em>Pointwise Maximum</em> of vA and vB. */
+inline vec4i vec4i_max(vec4i vA, vec4i vB)
+{
+#if defined(__ALTIVEC__)	/* AltiVec */
+  return vec_max((vector int)vA, (vector int)vB);
+#else  /* Scalar */
+  int * s1 = (int*)&vA;
+  int * s2 = (int*)&vB;
+  vec4i max;
+  int * smax = (int*)&max;
+  smax[0] = MAX(s1[0], s2[0]);
+  smax[1] = MAX(s1[1], s2[1]);
+  smax[2] = MAX(s1[2], s2[2]);
+  smax[3] = MAX(s1[3], s2[3]);
+  return max;
+#endif
+}
+
+/*! Calculate <em>Pointwise Equality</em> of vA and vB. */
+inline int vec4f_eq(vec4f vA, vec4f vB)
+{
+#if defined(__SSE__)		/* SSE */
+  vec4i compare = __builtin_ia32_cmpeqps((vec4f)vA, (vec4f)vB);
+  return __builtin_ia32_movmskps((vec4f)compare);
+#else  /* Scalar */
+  float * s1 = (float*)&vA;
+  float * s2 = (float*)&vB;
+  return (s1[0] == s2[0] &&
+	  s1[1] == s2[1] &&
+	  s1[2] == s2[2] &&
+	  s1[3] == s2[3]);
+#endif
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Test vec4i_all_eq() */
+inline int test_vec4i_all_eq(void)
+{
+  vec4i foo = {1,5,7,9};
+  vec4i bar = {1,5,7,9};
+  if (vec4i_all_eq(foo, bar)) { printf("Foo and bar had the same values.\n"); }
+  else                        { printf("Foo and bar had different values.\n"); }
+  return 0;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Test vec4i_max() */
+inline int test_vec4i_max(void)
+{
+  vec4i foo = {1,5,7,9};
+  vec4i bar = {7,6,5,4};
+  bar = vec4i_max(foo,bar);
+  int * s_bar = (int*)&bar;
+  for (unsigned int i = 0; i < 4; i++) { printf("bar: %d\n", s_bar[i]); }
+  return 0;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline int test_scalar(void)
+{
+  int foo[4] = {1,5,7,9};
+  int bar[4] = {2,3,4,5};
+  for (unsigned int i = 0; i < 4; i++) { bar[i] += foo[i]; }
+  for (unsigned int i = 0; i < 4; i++) { printf("bar2: %d\n", bar[i]); }
+  return 0;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+typedef union
+{
+  vec4i v;
+  int s[4];
+} vector;
+
+inline int test_vector_1(void)
+{
+  vector foo = {{1,5,7,9}};
+  vector bar = {{2,3,4,5}};
+  bar.v += foo.v;
+  for (unsigned int i = 0; i < 4; i++) { printf("bar2: %d\n", bar.s[i]); }
+  return 0;
+}
+
+inline int test_vector_2(void)
+{
+  vec4i foo = {1,5,7,9};
+  vec4i bar = {2,3,4,5};
+  int * pop = (int*)&bar;
+  bar += foo;
+  for (unsigned int i = 0; i < 4; i++) { printf("bar2: %d\n", *(pop++)); }
+  return 0;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

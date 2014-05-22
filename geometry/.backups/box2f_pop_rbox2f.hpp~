@@ -1,0 +1,68 @@
+/*!
+ * \file box2f_pop_rbox2f.hpp
+ * \brief Pop Out or In Rounded Boxes from Boxes.
+ * \author Copyright (C) 2007 Per Nordlöw (per.nordlow@gmail.com)
+ * \date 2007-07-04 19:05
+ */
+
+#pragma once
+
+#include "box2f.hpp"
+#include "rbox2f.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Pop-Out \p a Single-Side-Rounded box \p b from the box \p a from the
+ * edge of \p a given by \p boxedge.
+ *
+ * \param[in] boxA
+ * \param[out] boxB
+ * \param[in] prg Pop-Out Progress.
+ * \param[in] rposE Relative Position Along Edge. Use 0.5f for \em centered pop-out.
+ */
+int
+box2f_rlay_popOut_rbox2f(const box2f * boxA, rbox2f * rboxB,
+                         const vec2f * rdim, const vec2f * rradI,
+                         float prg, float rposE,
+                         BOXEDGE_t boxedge);
+
+/*!
+ * Pop-Out \p a Single-Side-Rounded box \p b from the box \p a from the
+ * edge of \p a given by \p boxedge.
+ *
+ * \param[in] boxA
+ * \param[out] boxB
+ * \param[in] prg Pop-Out Progress.
+ * \param[in] rposE Relative Position Along Edge. Use 0.5f for \em centered pop-out.
+ */
+int
+box2f_rlay_popOut_box2f(const box2f * boxA, box2f * boxB,
+                        const vec2f * rdim,
+                        float prg, float rposE,
+                        BOXEDGE_t boxedge);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pop-In \p a Single-Side-Rounded box \p b from the box \p a from the
+ * edge of \p a given by \p boxedge.
+ *
+ * \param[in] prg Pop-In Progress.
+ * \param[in] rposE Relative Position Along Edge. Use 0.5f for \em centered pop-in.
+ */
+int
+box2f_rlay_popIn_rbox2f(const box2f * boxA, rbox2f * rboxB,
+                        const vec2f * rdim,
+                        float prg, float rposE,
+                        BOXEDGE_t boxedge);
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

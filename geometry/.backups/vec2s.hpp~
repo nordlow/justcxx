@@ -1,0 +1,107 @@
+/*!
+ * \file vec2s.hpp
+ * \brief Two-dimensional Vector of shorts.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "utils.h"
+#include "chv.h"
+
+#include <math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of shorts.
+ */
+typedef struct
+{
+  short x;			/**< X Coordinate. */
+  short y;			/**< Y Coordinate. */
+} vec2s;
+
+/*! Set \p a to the vector [\p x, \p y] */
+static inline void
+vec2s_set(vec2s * a, short x, short y)
+{
+  a->x = x;
+  a->y = y;
+}
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline short
+vec2s_at(const vec2s * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec2s_fprint(FILE * stream, const vec2s * a)
+{
+  fprintf(stream, "[%6d,%6d]", a->x, a->y);
+}
+
+static inline void
+vec2s_print(const vec2s * a)
+{
+  vec2s_fprint(stdout, a);
+}
+
+void
+vec2sarray_fprint(FILE * stream, const vec2s * a, int n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec2s(const vec2s * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_s16be(chv, &a->x);
+  ret += chv_enc_s16be(chv, &a->y);
+  return ret;
+}
+
+static inline int
+chv_dec_vec2s(vec2s * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_s16be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_s16be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+static inline int
+chv_enc_vec2sarray(const vec2s * a, uint32_t vtxN, chv_t * chv)
+{
+  int ret = 0;
+  for (uint32_t i = 0; i < vtxN; i++) {
+    ret += chv_enc_vec2s(&a[i], chv);
+  }
+  return ret;
+}
+
+static inline int
+chv_dec_vec2sarray(vec2s * a, uint32_t vtxN, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  for (uint32_t i = 0; i < vtxN; i++) {
+    if ((ret = chv_dec_vec2s(&a[i], chv)) >= 0) cnt += ret; else return ret;
+  }
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

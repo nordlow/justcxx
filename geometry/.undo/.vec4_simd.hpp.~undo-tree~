@@ -1,0 +1,23 @@
+"457e15d89b79b79ee88775ed728a09fde1456af9"
+[cl-struct-undo-tree [nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil ([nil (#1=[nil nil ((2828 . 2829)) nil (21009 395 460577 524000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -2828) 2828 (t 21009 393 462445 888000)) nil (21009 395 460595 605000) 0 nil]) ((2631 . 2632)) nil (21009 393 404443 312000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -2631) 2631) nil (21009 393 404461 63000) 0 nil]) ((2564 . 2565)) nil (21009 393 404470 529000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -2564) 2564) nil (21009 393 404478 322000) 0 nil]) ((2347 . 2348)) nil (21009 393 404486 586000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -2347) 2347) nil (21009 393 404493 531000) 0 nil]) ((2121 . 2122)) nil (21009 393 404501 329000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -2121) 2121 (t 21009 386 242445 735000)) nil (21009 393 404509 377000) 0 nil] [nil nil ((#("{" 0 1 (fontified t)) . 1838) (t 21009 386 242445 735000) (undo-tree-id11 . 1) (undo-tree-id12 . -1) (undo-tree-id13 . -1)) ((1838 . 1839)) (21009 387 384215 642000) 0 nil]) ((1837 . 1838)) nil (21009 387 386414 748000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -1837) 1837) nil (21009 386 179435 399000) 0 nil]) ((1448 . 1449)) nil (21009 386 179444 830000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -1448) 1448) nil (21009 386 179452 834000) 0 nil]) ((1012 . 1013)) nil (21009 386 179460 396000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -1012) 1012) nil (21009 386 179467 637000) 0 nil]) ((656 . 657)) nil (21009 386 179474 798000) 0 nil]) ((#("
+" 0 1 (fontified t)) . -656) 656 (t 21009 377 586445 551000)) nil (21009 386 179483 563000) 0 nil]) ((#("
+/* ---------------------------- Group Separator ---------------------------- */
+" 0 1 (fontified t) 1 2 (c-in-sws t c-is-sws t fontified t face font-lock-comment-delimiter-face) 2 4 (c-in-sws t fontified t face font-lock-comment-delimiter-face) 4 80 (c-in-sws t fontified t face font-lock-comment-face) 80 81 (c-in-sws t fontified t)) . 2550) 2631 (undo-tree-id6 . -81) (undo-tree-id7 . -81)) nil (21009 377 537926 43000) 0 nil]) ((#("
+/* ---------------------------- Group Separator ---------------------------- */
+" 0 1 (fontified t) 1 2 (c-in-sws t c-is-sws t fontified t face font-lock-comment-delimiter-face) 2 4 (c-in-sws t fontified t face font-lock-comment-delimiter-face) 4 80 (c-in-sws t fontified t face font-lock-comment-face) 80 81 (c-in-sws t fontified t)) . 2318) 2399 (t 21009 375 594445 508000) (undo-tree-id8 . -81) (undo-tree-id9 . -81) (undo-tree-id10 . -81)) nil (21009 377 537960 747000) 0 nil]) ((#("
+/* ---------------------------- Group Separator ---------------------------- */
+" 0 1 (fontified t) 1 2 (c-in-sws t c-is-sws t fontified t face font-lock-comment-delimiter-face) 2 4 (c-in-sws t fontified t face font-lock-comment-delimiter-face) 4 80 (c-in-sws t fontified t face font-lock-comment-face) 80 81 (c-in-sws t fontified t)) . 2065) 2146 (t 21009 374 706445 490000) (undo-tree-id4 . -81) (undo-tree-id5 . -81)) nil (21009 375 537762 297000) 0 nil]) ((#("
+/* ---------------------------- Group Separator ---------------------------- */
+" 0 1 (fontified t) 1 2 (c-in-sws t c-is-sws t fontified t face font-lock-comment-delimiter-face) 2 4 (c-in-sws t fontified t face font-lock-comment-delimiter-face) 4 80 (c-in-sws t fontified t face font-lock-comment-face) 80 81 (c-in-sws t fontified t)) . 1775) 1856 (t 21009 373 434445 462000) (undo-tree-id2 . -81) (undo-tree-id3 . -81)) nil (21009 374 649101 851000) 0 nil]) ((#("
+/* ---------------------------- Group Separator ---------------------------- */
+" 0 1 (c-in-sws t c-is-sws t fontified t) 1 2 (c-is-sws t c-in-sws t fontified t face font-lock-comment-delimiter-face) 2 4 (c-in-sws t fontified t face font-lock-comment-delimiter-face) 4 80 (c-in-sws t fontified t face font-lock-comment-face) 80 81 (c-in-sws t fontified t)) . 563) 644 (t 21009 372 434445 441000) (undo-tree-id0 . -81) (undo-tree-id1 . -81)) nil (21009 373 377254 565000) 0 nil]) ((#("
+" 0 1 (fontified t)) . 396)) nil (21009 372 329128 283000) 0 nil]) ((#("
+" 0 1 (fontified t c-in-sws t c-is-sws t)) . 242) (t 20418 43577 896431 222000)) nil (21009 372 329143 898000) 0 nil]) nil nil (21009 372 329151 526000) 0 nil] #1# 929 26 nil]

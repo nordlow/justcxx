@@ -1,0 +1,501 @@
+/*!
+ * \file box2d.hpp
+ * \brief Two-dimensional Box of doubles.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "vec2d.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional Box of doubles.
+ */
+typedef struct
+{
+  vec2d l;			/**< Lower corner. */
+  vec2d u;			/**< Upper corner. */
+} box2d;
+
+/*!
+ * Set \p a to the box [\p lx, \p ly, \p ux, \p uy].
+ */
+static inline void
+box2d_set(box2d * a, double lx, double ly, double ux, double uy)
+{
+  a->l.x = lx;
+  a->l.y = ly;
+  a->u.x = ux;
+  a->u.y = uy;
+}
+
+/*!
+ * Set \p a to the square centered at \p c with "side-radius" s
+ *
+ * More precisely set a to [a->x - s, a->y - s, a->x + s, a->y + s]
+ */
+static inline void
+box2d_set_sqr(box2d * a, const vec2d * c, const float s)
+{
+  a->l.x = c->x - s;
+  a->l.y = c->y - s;
+  a->u.x = c->x + s;
+  a->u.y = c->y + s;
+}
+
+/*!
+ * Allocate and Initialize a box [\p lx, \p ly, \p ux, \p uy].
+ */
+static inline box2d *
+box2d_new(double lx, double ly, double ux, double uy)
+{
+  box2d * a  = (box2d*)malloc(sizeof(box2d));
+  box2d_set(a, lx, ly, ux, uy);
+  return a;
+}
+
+/*!
+ * Set \p a to the box [b, b].
+ */
+static inline void
+box2d_set_v(box2d * a, vec2d * b)
+{
+  a->l.x = b->x;
+  a->l.y = b->y;
+  a->u.x = b->x;
+  a->u.y = b->y;
+}
+
+/*!
+ * Read Dimensions of \p box into \p dim.
+ */
+static inline void
+box2d_rdDim(const box2d * box, vec2d * dim)
+{
+  dim->x = box->u.x - box->l.x;
+  dim->y = box->u.y - box->l.y;
+}
+
+/*!
+ * Get Dimensions of \p box along dim \p i.
+ */
+static inline double
+box2d_getDimi(const box2d * box, int i)
+{
+  if (i == 0) {
+    return box->u.x - box->l.x;
+  } else {
+    return box->u.y - box->l.y;
+  }
+}
+
+/*!
+ * Get Area of \p box.
+ */
+static inline double
+box2d_getArea(const box2d * box)
+{
+  return (box->u.x - box->l.x) * (box->u.y - box->l.y);
+}
+
+/*!
+ * Read Center of \p box into \p cen.
+ */
+static inline void
+box2d_rdCen(const box2d * box, vec2d * cen)
+{
+  cen->x = (box->l.x + box->u.x) / 2;
+  cen->y = (box->l.y + box->u.y) / 2;
+}
+
+/*!
+ * Get Center of \p box along dim \p i.
+ */
+static inline double
+box2d_getCeni(const box2d * box, int i)
+{
+  if (i == 0) {
+    return (box->l.x + box->u.x) / 2;
+  } else {
+    return (box->l.y + box->u.y) / 2;
+  }
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+box2d_eq(const box2d * a, const box2d * b)
+{
+  return (vec2d_eq(&a->l, &b->l) &&
+	  vec2d_eq(&a->u, &b->u));
+}
+
+/*!
+ * Extend the sides of a the shift \p s.
+ */
+static inline void
+box2d_extend(box2d * a, const vec2d * s)
+{
+  a->l.x -= s->x;
+  a->l.y -= s->y;
+  a->u.x += s->x;
+  a->u.y += s->y;
+}
+
+/*!
+ * Translate the sides of \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+box2d_move(const box2d * a, const vec2d * s, box2d * b)
+{
+  b->l.x = a->l.x + s->x;
+  b->l.y = a->l.y + s->y;
+  b->u.x = a->u.x + s->x;
+  b->u.y = a->u.y + s->y;
+}
+
+/*!
+ * Horizontally Translate the sides of \p a the shift sx and put the result in \p b.
+ */
+static inline void
+box2d_htransl(const box2d * a, double sx, box2d * b)
+{
+  b->l.x = a->l.x + sx;
+  b->l.y = a->l.y;
+  b->u.x = a->u.x + sx;
+  b->u.y = a->u.y;
+}
+
+/*!
+ * Vertically Translate the sides of \p a the shift sy and put the result in \p b.
+ */
+static inline void
+box2d_vtransl(const box2d * a, double sy, box2d * b)
+{
+  b->l.x = a->l.x;
+  b->l.y = a->l.y + sy;
+  b->u.x = a->u.x;
+  b->u.y = a->u.y + sy;
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_cscale(const box2d * a, double f, box2d * b)
+{
+  vec2d dim;			/* dimension */
+  vec2d s;			/* shift */
+
+  box2d_rdDim(a, &dim);
+
+  s.x = - (dim.x * (1 - f) / 2);
+  s.y = - (dim.y * (1 - f) / 2);
+
+  *b = *a;
+  box2d_extend(b, &s);
+}
+
+/*!
+ * Read inner square of \p a scaled the factor \p f and put result in \p b.
+ */
+static inline void
+box2d_rdISqr(const box2d * a, double f, box2d * b)
+{
+  vec2d cen;			/* center */
+  vec2d dim;			/* dimension */
+  double s;			/* shift */
+
+  box2d_rdCen(a, &cen);
+  box2d_rdDim(a, &dim);
+  s = MIN2(dim.x, dim.y) / 2 * f;
+
+  box2d_set_sqr(b, &cen, s);
+}
+
+/*!
+ * Calculate relative subbox of \p a at [\p rp00, \p rp01, \p rp10, \p rp11] and put result
+ * in \p b.
+ */
+static inline void
+box2d_rdSub(const box2d * a,
+	   double rp00, double rp01, double rp10, double rp11,
+	   box2d * b)
+{
+  vec2d ad;
+  box2d_rdDim(a, &ad);
+  box2d_set(b,
+	     a->l.x + ad.x * rp00,
+	     a->l.y + ad.y * rp01,
+	     a->l.x + ad.x * rp10,
+	     a->l.y + ad.y * rp11);
+}
+
+/*!
+ * Left-aligned Horizontal scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_scaleLH(const box2d * a, double f, box2d * b)
+{
+  double aw = a->u.x - a->l.x;	/* width of a */
+  b->l.x = a->l.x;
+  b->l.y = a->l.y;
+  b->u.x = a->l.x + aw * f;
+  b->u.y = a->u.y;
+}
+
+/*!
+ * Right-aligned Horizontal scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_scaleRH(const box2d * a, float f, box2d * b)
+{
+  double aw = a->u.x - a->l.x;	/* width of a */
+  b->l.x = a->l.x - aw * f;
+  b->l.y = a->l.y;
+  b->u.x = a->l.x;
+  b->u.y = a->u.y;
+}
+
+/*!
+ * Top-aligned Vertical scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_scaleTV(const box2d * a, double f, box2d * b)
+{
+  double ah = a->u.y - a->l.y;	/* height of a */
+  b->l.x = a->l.x;
+  b->l.y = a->l.y;
+  b->u.x = a->u.x;
+  b->u.y = a->l.y + ah * f;
+}
+
+/*!
+ * Center-aligned Horizontal scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_scaleCH(const box2d * a, double f, box2d * b)
+{
+  double aw = a->u.x - a->l.x;	/* width of a */
+  b->l.x = a->l.x + aw * (1 - f) / 2;
+  b->l.y = a->l.y;
+  b->u.x = a->u.x - aw * (1 - f) / 2;
+  b->u.y = a->u.y;
+}
+
+/*!
+ * Center-aligned Vertical scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2d_scaleCV(const box2d * a, double f, box2d * b)
+{
+  double ah = a->u.y - a->l.y;	/* height of a */
+  b->l.x = a->l.x;
+  b->l.y = a->l.y + ah * (1 - f) / 2;
+  b->u.x = a->u.x;
+  b->u.y = a->u.y - ah * (1 - f) / 2;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Extract horizontal subbox from \p i / \p n to (\p i + \p l) / \p n.
+ */
+static inline void
+box2d_subHi(const box2d * a,
+	    int i, int l, int n,
+	    box2d * b)
+{
+  double aw = a->u.x - a->l.x;	/* width of a */
+  double alx = a->l.x;
+  b->l.x = alx + aw * i / n;
+  b->l.y = a->l.y;
+  b->u.x = alx + aw * (i + l) / n;
+  b->u.y = a->u.y;
+}
+
+/*!
+ * Extract vertical subbox from \p i / \p n to (\p i + \p l) / \p n.
+ */
+static inline void
+box2d_subVi(const box2d * a,
+	    int i, int l, int n,
+	    box2d * b)
+{
+  double ah = a->u.y - a->l.y;	/* height of a */
+  double aly = a->l.y;
+  b->l.x = a->l.x;
+  b->l.y = aly + ah * i / n;
+  b->u.x = a->u.x;
+  b->u.y = aly + ah * (i + l) / n;
+}
+
+/*!
+ * Extract horizontal and vertical subbox from \p i / \p n to (\p i + \p l) / \p n.
+ */
+static inline void
+box2d_subHVij(const box2d * a,
+	      int ix, int lx, int nx,
+	      int iy, int ly, int ny,
+	      box2d * b)
+{
+  vec2d dim;
+  box2d_rdDim(a, &dim);
+  double alx = a->l.x, aly = a->l.y;
+  b->l.x = alx + dim.x * ix / nx;
+  b->l.y = aly + dim.y * iy / ny;
+  b->u.x = alx + dim.x * (ix + lx) / nx;
+  b->u.y = aly + dim.y * (iy + ly) / ny;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if a lies inclusively inside b.
+ */
+static inline int
+box2d_inside_box2d(const box2d * a, const box2d * b)
+{
+  return (b->l.x <= a->l.x && a->u.x <= b->u.x && /* covers along x */
+	  b->l.y <= a->l.y && a->u.y <= b->u.y); /* covers along y */
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+static inline int
+box2d_beside_box2d(const box2d * a, const box2d * b)
+{
+  return (a->u.x < b->l.x ||  // left of
+	  a->l.x > b->u.x ||  // right of
+	  a->u.y < b->l.y ||  // above
+	  a->l.y > b->u.y);   // below
+}
+
+static inline int
+box2d_beside_vec2d(const box2d * a, const vec2d * b)
+{
+  return (a->u.x < b->x ||  // left of
+	  a->l.x > b->x ||  // right of
+	  a->u.y < b->y ||  // above
+	  a->l.y > b->y);   // below
+}
+
+static inline int
+box2d_overlap_box2d(const box2d * a, const box2d * b)
+{
+  return ! box2d_beside_box2d(a, b);
+}
+
+static inline int
+box2d_covers_vec2d(const box2d * a, const vec2d * b)
+{
+  return ! box2d_beside_vec2d(a, b);
+}
+
+static inline int
+box2d_covers_box2d(const box2d * a, const box2d * b)
+{
+  return box2d_inside_box2d(b, a);
+}
+
+/*!
+ * Unite \p a and \p b into \p c.
+ */
+static inline void
+box2d_unite(const box2d * a, const box2d * b, box2d * c)
+{
+  c->l.x = MIN2(a->l.x, b->l.x);
+  c->l.y = MIN2(a->l.y, b->l.y);
+  c->u.x = MAX2(a->u.x, b->u.x);
+  c->u.y = MAX2(a->u.y, b->u.y);
+}
+
+/*!
+ * Intersect \p a and \p b into \p c.
+ * \return non-zero if an intersection region with a non-zero area was found.
+ */
+static inline int
+box2d_intersect(const box2d * a, const box2d * b, box2d * c)
+{
+  if (! (a->u.x < b->l.x ||
+	 a->u.y < b->l.y ||
+	 b->u.x < a->l.x ||
+	 b->u.y < a->l.y)) {
+    c->l.x = MAX2(a->l.x, b->l.x);
+    c->l.y = MAX2(a->l.y, b->l.y);
+    c->u.x = MIN2(a->u.x, b->u.x);
+    c->u.y = MIN2(a->u.y, b->u.y);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+/*!
+ * Indexing of box \p a at \p i.
+ */
+static inline vec2d
+box2d_at(const box2d * a, int i)
+{
+  return (&a->l)[i];
+}
+
+/*!
+ * Indexing of box \p a at limit \p i along dimensinon j, or for short at (i,j).
+ */
+static inline double
+box2d_at2(const box2d * a, int i, int j)
+{
+  return (&(&a->l)[i].x)[j];
+}
+
+/*!
+ * Check whether box a has zero dimensions.
+ */
+static inline int
+box2d_isPoint(const box2d * a)
+{
+  return (a->l.x == a->u.x &&
+	  a->l.y == a->u.y);
+}
+
+static inline void
+box2d_fprint(FILE * stream, const box2d * a)
+{
+  fprintf(stream, "[[%f,%f],[%f,%f]]",
+	  a->l.x, a->l.y, a->u.x, a->u.y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_box2d(const box2d * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2d(&a->l, chv);
+  ret += chv_enc_vec2d(&a->u, chv);
+  return ret;
+}
+
+static inline int
+chv_dec_box2d(box2d * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2d(&a->l, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2d(&a->u, chv)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

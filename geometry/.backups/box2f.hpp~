@@ -1,0 +1,1596 @@
+/*!
+ * \file box2f.hpp
+ * \brief Two-Dimensional Box of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+/* ========================================================================= */
+
+#pragma once
+
+#include "vec2f.h"
+#include "bitwise.h"
+#include "SFILL_enum.h"
+#include "clamp.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*! Box Edge Type Code. */
+typedef enum {
+    BOXEDGE_TOP,			/**< Box Edge at Vertical Top. */
+    BOXEDGE_BOT,			/**< Box Edge at Vertical Bottom. */
+    BOXEDGE_LEFT,			/**< Box Edge at Horizontal Left. */
+    BOXEDGE_RIGHT,		/**< Box Edge at Horizontal Right. */
+} __attribute__ ((packed)) BOXEDGE_t;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Two-Dimensional Box of floats. */
+class box2f
+{
+public:
+    const char * concept_name() const { return "2-Dimensional Box (Rectangle)"; } ///< Get Knowledge \em Concept Name.
+public:
+    vec2f l;			/**< Lower corner. */
+    vec2f u;			/**< Upper corner. */
+};
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set \p a to the box [\p lx, \p ly, \p ux, \p uy].
+ */
+static inline void
+box2f_set(box2f * a, float lx, float ly, float ux, float uy)
+{
+    a->l.x = lx;
+    a->l.y = ly;
+    a->u.x = ux;
+    a->u.y = uy;
+}
+
+/*!
+ * Set \p a to the box [\p b, \p b, \p b, \p b].
+ */
+static inline void
+box2f_set_scalar(box2f * a, float b)
+{
+    a->l.x = b;
+    a->l.y = b;
+    a->u.x = b;
+    a->u.y = b;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+box2f_set_copy(box2f * a, const box2f * b)
+{
+    *a = *b;
+}
+
+/*!
+ * Set \p a to the square with Center at \p c with "side-radius" s
+ *
+ * More precisely set \p a to [c->x - s, c->y - s, c->x + s, c->y + s]
+ */
+static inline void
+box2f_setSqr(box2f * a, const vec2f * c, const float s)
+{
+    a->l.x = c->x - s;
+    a->l.y = c->y - s;
+    a->u.x = c->x + s;
+    a->u.y = c->y + s;
+}
+
+/*!
+ * Set \p a to the Box with Center at \p c with radius dimensions \p r.
+ */
+static inline void
+box2f_setCenRad(box2f * a, const vec2f * c, const vec2f * r)
+{
+    a->l.x = c->x - r->x;
+    a->l.y = c->y - r->y;
+    a->u.x = c->x + r->x;
+    a->u.y = c->y + r->y;
+}
+
+/*!
+ * Set \p a to the Box with Center at \p c with dimensions \p d.
+ */
+static inline void
+box2f_setCenDim(box2f * a, const vec2f * c, const vec2f * d)
+{
+    a->l.x = c->x - d->x * 0.5f;
+    a->l.y = c->y - d->y * 0.5f;
+    a->u.x = c->x + d->x * 0.5f;
+    a->u.y = c->y + d->y * 0.5f;
+}
+
+/*!
+ * Set \p a to the Box with Upper Center at \p c with dimensions \p d.
+ */
+static inline void
+box2f_setTCenDim(box2f * a, const vec2f * c, const vec2f * d)
+{
+    a->l.x = c->x - d->x * 0.5f;
+    a->l.y = c->y;
+    a->u.x = c->x + d->x * 0.5f;
+    a->u.y = c->y + d->y;
+}
+
+/*!
+ * Set \p a to the Box with Bottom Center at \p c with dimensions \p d.
+ */
+static inline void
+box2f_setBCenDim(box2f * a, const vec2f * c, const vec2f * d)
+{
+    a->l.x = c->x - d->x * 0.5f;
+    a->l.y = c->y - d->y;
+    a->u.x = c->x + d->x * 0.5f;
+    a->u.y = c->y;
+}
+
+/*!
+ * Set \p a to the Box with Right Center at \p c with dimensions \p d.
+ */
+static inline void
+box2f_setRCenDim(box2f * a, const vec2f * c, const vec2f * d)
+{
+    a->l.x = c->x - d->x;
+    a->l.y = c->y - d->y * 0.5f;
+    a->u.x = c->x;
+    a->u.y = c->y + d->y * 0.5f;
+}
+
+/*!
+ * Set \p a to the Box with Left Center at \p c with dimensions \p d.
+ */
+static inline void
+box2f_setLCenDim(box2f * a, const vec2f * c, const vec2f * d)
+{
+    a->l.x = c->x;
+    a->l.y = c->y - d->y * 0.5f;
+    a->u.x = c->x + d->x;
+    a->u.y = c->y + d->y * 0.5f;
+}
+
+/*!
+ * Allocate and Initialize a box [\p lx, \p ly, \p ux, \p uy].
+ */
+static inline box2f *
+box2f_new(float lx, float ly, float ux, float uy)
+{
+    box2f * a = (box2f*)malloc(sizeof(box2f));
+    box2f_set(a, lx, ly, ux, uy);
+    return a;
+}
+
+/*!
+ * Allocate and Initialize a box copy of \p b.
+ */
+static inline box2f *
+box2f_new_copy(const box2f * b)
+{
+    box2f * a = (box2f*)malloc(sizeof(box2f));
+    box2f_set_copy(a, b);
+    return a;
+}
+
+/*!
+ * Set \p a's Both Corners to the Point \p b.
+ */
+static inline void
+box2f_set_Point(box2f * a, const vec2f * b)
+{
+    a->l.x = b->x;
+    a->l.y = b->y;
+    a->u.x = b->x;
+    a->u.y = b->y;
+}
+
+/*!
+ * Set \p a's [Low, High] Corners to [l, u].
+ */
+static inline void
+box2f_set_PointLH(box2f * a, const vec2f * l, const vec2f * u)
+{
+    a->l = *l;
+    a->u = *u;
+}
+
+/*!
+ * Set \p a to the box \p b respecting \p a's \em Preferred \em Aspect
+ * \em Ratio (PAR) [\p dX : \p dY].
+ *
+ * \param[in] outer_flag non-zero if outer box is wanted, otherwise inner box.
+ * \return >= 0 upon success or -1 upon failure.
+ */
+int box2f_set_and_PARadjust(box2f * a, const box2f * b,
+                            float dX, float dY, bool outer_flag);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Dimensions into \p dim.
+ */
+static inline void
+box2f_rdDim(const box2f * box, vec2f * dim)
+{
+    dim->x = box->u.x - box->l.x;
+    dim->y = box->u.y - box->l.y;
+}
+
+/*!
+ * Read \p box "radius" into \p rad.
+ */
+static inline void
+box2f_rdRad(const box2f * box, vec2f * rad)
+{
+    rad->x = (box->u.x - box->l.x) * 0.5f;
+    rad->y = (box->u.y - box->l.y) * 0.5f;
+}
+
+/*!
+ * Read \p box dimensions scaled with \p scale and put into \p dim.
+ */
+static inline void
+box2f_rdSDim(const box2f * box, const vec2f * scale, vec2f * dim)
+{
+    dim->x = (box->u.x - box->l.x) * scale->x;
+    dim->y = (box->u.y - box->l.y) * scale->y;
+}
+
+/*!
+ * Read \p box Dimensions scaled with scalar \p scale and put into \p dim.
+ */
+static inline void
+box2f_rdSDims(const box2f * box, float scale, vec2f * dim)
+{
+    dim->x = (box->u.x - box->l.x) * scale;
+    dim->y = (box->u.y - box->l.y) * scale;
+}
+
+/*!
+ * Get \p box Dimension along dimension \p i.
+ */
+static inline float
+box2f_getDimi(const box2f * box, int i)
+{
+    if (i == 0) {
+        return box->u.x - box->l.x;
+    } else {
+        return box->u.y - box->l.y;
+    }
+}
+
+/*!
+ * Get \p box Area.
+ */
+static inline float
+box2f_getArea(const box2f * box)
+{
+    return (box->u.x - box->l.x) * (box->u.y - box->l.y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen.
+ */
+static inline void
+box2f_rdCen(const box2f * box, vec2f * cen)
+{
+    cen->x = (box->l.x + box->u.x) * 0.5f;
+    cen->y = (box->l.y + box->u.y) * 0.5f;
+}
+
+/*!
+ * Read \p box Center Top into \p cen.
+ */
+static inline void
+box2f_rdCenT(const box2f * box, vec2f * cen)
+{
+    cen->x = (box->l.x + box->u.x) * 0.5f;
+    cen->y = (box->l.y);
+}
+
+/*!
+ * Read \p box Center Bottom into \p cen.
+ */
+static inline void
+box2f_rdCenB(const box2f * box, vec2f * cen)
+{
+    cen->x = (box->l.x + box->u.x) * 0.5f;
+    cen->y = (box->u.y);
+}
+
+/*!
+ * Read \p box Center Left into \p cen.
+ */
+static inline void
+box2f_rdCenL(const box2f * box, vec2f * cen)
+{
+    cen->x = (box->l.x);
+    cen->y = (box->l.y + box->u.y) * 0.5f;
+}
+
+/*!
+ * Read \p box Center Right into \p cen.
+ */
+static inline void
+box2f_rdCenR(const box2f * box, vec2f * cen)
+{
+    cen->x = (box->u.x);
+    cen->y = (box->l.y + box->u.y) * 0.5f;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen and Dimension into \p dim.
+ */
+static inline void
+box2f_rdCenDim(const box2f * box, vec2f * cen, vec2f * dim)
+{
+    box2f_rdCen(box, cen);
+    box2f_rdDim(box, dim);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen and Radius into \p rad.
+ */
+static inline void
+box2f_rdCenRad(const box2f * box, vec2f * cen, vec2f * rad)
+{
+    box2f_rdCen(box, cen);
+    box2f_rdRad(box, rad);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Get \p box Center along dimension \p i.
+ */
+static inline float
+box2f_getCeni(const box2f * box, int i)
+{
+    if (i == 0) {
+        return (box->l.x + box->u.x) * 0.5f;
+    } else {
+        return (box->l.y + box->u.y) * 0.5f;
+    }
+}
+
+/*!
+ * Read Inner Romb of \p box into \p romb.
+ */
+static inline void
+box2f_rdIRomb(const box2f * box, vec2f romb[4])
+{
+    float cx = (box->l.x + box->u.x) * 0.5f;	/* center along x */
+    float cy = (box->l.y + box->u.y) * 0.5f;	/* center along y */
+
+    romb[0].x = cx;
+    romb[0].y = box->l.y;
+
+    romb[1].x = box->u.x;
+    romb[1].y = cy;
+
+    romb[2].x = cx;
+    romb[2].y = box->u.y;
+
+    romb[3].x = box->l.x;
+    romb[3].y = cy;
+}
+
+/*!
+ * Return non-zero if \p a and [\p lx, \p ly, \p ux, \p uy] are <em>equal</em>.
+ */
+static inline int
+box2f_eq_f(const box2f * a, float lx, float ly, float ux, float uy)
+{
+    return (a->l.x == lx &&
+            a->l.y == ly &&
+            a->u.x == ux &&
+            a->u.y == uy);
+}
+
+/*!
+ * Return non-zero if \p s and [\p lx, \p ly, \p ux, \p uy] are <em>equal</em>.
+ */
+static inline int
+box2f_eq_sf(const box2f * a, float s)
+{
+    return (a->l.x == s &&
+            a->l.y == s &&
+            a->u.x == s &&
+            a->u.y == s);
+}
+
+/*!
+ * Return non-zero if \p a and [\p lx, \p ly, \p ux, \p uy] are <em>not equal</em>.
+ */
+static inline int
+box2f_neq_f(const box2f * a, float lx, float ly, float ux, float uy)
+{
+    return (a->l.x != lx ||
+            a->l.y != ly ||
+            a->u.x != ux ||
+            a->u.y != uy);
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+box2f_eq(const box2f * a, const box2f * b)
+{
+    return (vec2f_eq(&a->l, &b->l) &&
+            vec2f_eq(&a->u, &b->u));
+}
+
+/*!
+ * Return non-zero if \p a and \p b are not equal.
+ */
+static inline int
+box2f_neq(const box2f * a, const box2f * b)
+{
+    return (vec2f_neq(&a->l, &b->l) ||
+            vec2f_neq(&a->u, &b->u));
+}
+
+/*!
+ * Extend the sides of \p a the shift \p s.
+ */
+static inline void
+box2f_extendself(box2f * a, const vec2f * s)
+{
+    a->l.x -= s->x;
+    a->l.y -= s->y;
+    a->u.x += s->x;
+    a->u.y += s->y;
+}
+
+/*!
+ * Extend the sides of \p a the shift \p s.
+ */
+static inline void
+box2f_extendselfxy(box2f * a, float sx, float sy)
+{
+    a->l.x -= sx;
+    a->l.y -= sy;
+    a->u.x += sx;
+    a->u.y += sy;
+}
+
+/*!
+ * Extend the sides of \p a the shift \p s and put result in \p b.
+ */
+static inline void
+box2f_extend(const box2f * a, const vec2f * s, box2f * b)
+{
+    b->l.x = a->l.x - s->x;
+    b->l.y = a->l.y - s->y;
+    b->u.x = a->u.x + s->x;
+    b->u.y = a->u.y + s->y;
+}
+
+/*!
+ * Extend the sides of \p a the scalar shift \p s and put result in \p b.
+ */
+static inline void
+box2f_extends(const box2f * a, const float s, box2f * b)
+{
+    b->l.x = a->l.x - s;
+    b->l.y = a->l.y - s;
+    b->u.x = a->u.x + s;
+    b->u.y = a->u.y + s;
+}
+
+/*!
+ * Horizontally Extend the sides of \p a the shift \p sx and put
+ * result in \p b.
+ */
+static inline void
+box2f_extendH(const box2f * a, float sx, box2f * b)
+{
+    b->l.x = a->l.x - sx;
+    b->l.y = a->l.y;
+    b->u.x = a->u.x + sx;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Vertically Extend the sides of \p a the shift \p sy and put result
+ * in \p b.
+ */
+static inline void
+box2f_extendV(const box2f * a, float sy, box2f * b)
+{
+    b->l.x = a->l.x;
+    b->l.y = a->l.y - sy;
+    b->u.x = a->u.x;
+    b->u.y = a->u.y + sy;
+}
+
+/*!
+ * Compress the sides of \p a the shift [sx, sy] and put result in \p b.
+ */
+static inline void
+box2f_compressXY(const box2f * a, float sx, float sy, box2f * b)
+{
+    b->l.x = a->l.x + sx;
+    b->l.y = a->l.y + sy;
+    b->u.x = a->u.x - sx;
+    b->u.y = a->u.y - sy;
+}
+
+/*!
+ * Compress the sides of \p a the shift \p s and put result in \p b.
+ */
+static inline void
+box2f_compress(const box2f * a, const vec2f * s, box2f * b)
+{
+    box2f_compressXY(a, s->x, s->y, b);
+}
+
+/*!
+ * Read the Control Point Mask of \p box at \p mpos and bit-or it with
+ * contents of \p ctrlPM.
+ */
+int
+box2f_rdCtrlPM_SFORM(const box2f * box,
+                     const vec2f * mpos, uint8_t * ctrlPM,
+                     uint32_t * rsz_i, bool set_flag);
+
+/*!
+ * Read the Control Point Mask of \p box at \p mpos and bit-or it with
+ * contents of \p ctrlPM.
+ */
+int
+box2f_rdCtrlPM_SFILL(const box2f * box, SFILL_t sfill,
+                     const vec2f * mpos, uint8_t * ctrlPM,
+                     uint32_t * rsz_i, bool set_flag);
+
+/*!
+ * Resize \p box using the user (mouse) drag from \p mpos the shift
+ * \p mshift.
+ *
+ * \param[in] ctrlPM Control Point Mask (4 LSBits) to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+int
+box2f_shiftCtrlP(box2f * box,
+                 const vec2f * mpos, const vec2f * mshift,
+                 const vec2f * mindim, const uint8_t * ctrlPM,
+                 const vec2f * PAR);
+
+/*!
+ * Shift the sides of \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+box2f_shift(box2f * a, const vec2f * s)
+{
+    a->l.x = a->l.x + s->x;
+    a->l.y = a->l.y + s->y;
+    a->u.x = a->u.x + s->x;
+    a->u.y = a->u.y + s->y;
+}
+
+/*!
+ * Horizontally Shift the sides of \p a the shift \p sx and put the
+ * result in \p b.
+ */
+static inline void
+box2f_hshift(box2f * a, float sx)
+{
+    a->l.x = a->l.x + sx;
+    a->u.x = a->u.x + sx;
+}
+
+/*!
+ * Vertically Shift the sides of \p a the shift \p sy and put the
+ * result in \p b.
+ */
+static inline void
+box2f_vshift(box2f * a, float sy)
+{
+    a->l.y = a->l.y + sy;
+    a->u.y = a->u.y + sy;
+}
+
+/*!
+ * Translate the sides of \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+box2f_move(const box2f * a, const vec2f * s, box2f * b)
+{
+    b->l.x = a->l.x + s->x;
+    b->l.y = a->l.y + s->y;
+    b->u.x = a->u.x + s->x;
+    b->u.y = a->u.y + s->y;
+}
+
+/*!
+ * Horizontally Translate the sides of \p a the shift \p sx and put
+ * the result in \p b.
+ */
+static inline void
+box2f_htransl(const box2f * a, float sx, box2f * b)
+{
+    b->l.x = a->l.x + sx;
+    b->l.y = a->l.y;
+    b->u.x = a->u.x + sx;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Vertically Translate the sides of \p a the shift \p sy and put the
+ * result in \p b.
+ */
+static inline void
+box2f_vtransl(const box2f * a, float sy, box2f * b)
+{
+    b->l.x = a->l.x;
+    b->l.y = a->l.y + sy;
+    b->u.x = a->u.x;
+    b->u.y = a->u.y + sy;
+}
+
+/*!
+ * Set the \em center of \p a to \p cen and put the result in \p b.
+ */
+static inline void
+box2f_setCen(const box2f * a, const vec2f * cen, box2f * b)
+{
+    vec2f old_cen; box2f_rdCen(a, &old_cen);
+    vec2f diff; vec2f_diff(cen, &old_cen, &diff);
+    box2f_move(a, &diff, b);
+}
+
+/*!
+ * Set the \em dimension of \p a to \p dim.
+ */
+static inline void
+box2f_setDim(box2f * a, const vec2f * dim)
+{
+    vec2f cen; box2f_rdCen(a, &cen);
+    box2f_setCenDim(a, &cen, dim);
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2f_cscale(const box2f * a, float f, box2f * b)
+{
+    vec2f dim; box2f_rdDim(a, &dim); /* dimension */
+    vec2f s;			/* shift */
+    s.x = - (dim.x * (1 - f) / 2);
+    s.y = - (dim.y * (1 - f) / 2);
+    *b = *a;
+    box2f_extendself(b, &s);
+}
+
+/*!
+ * Centered Scale \p a the factor [fx, fy] and put the result in \p b.
+ */
+static inline void
+box2f_cscalexy(const box2f * a, float fx, float fy, box2f * b)
+{
+    vec2f dim; box2f_rdDim(a, &dim); /* dimension */
+    vec2f s;			/* shift */
+    s.x = - (dim.x * (1 - fx) / 2);
+    s.y = - (dim.y * (1 - fy) / 2);
+    *b = *a;
+    box2f_extendself(b, &s);
+}
+
+/*!
+ * Centered Scale \p a the factor [fx, fy].
+ */
+static inline void
+box2f_cscalexy_self(box2f * a, float fx, float fy)
+{
+    vec2f dim; box2f_rdDim(a, &dim); /* dimension */
+    vec2f s;			/* shift */
+    s.x = - (dim.x * (1 - fx) / 2);
+    s.y = - (dim.y * (1 - fy) / 2);
+    box2f_extendself(a, &s);
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box2f_cscalev(const box2f * a, const vec2f * f, box2f * b)
+{
+    box2f_cscalexy(a, f->x, f->y, b);
+}
+
+/*!
+ * Centered Minimum Or Maximum Scale.
+ *
+ * Used to generate a frame to \p a to that has a frame width of
+ * MIN or MAX of (f * a->width, f * a->height)
+ *
+ * \param[in] maxflag non-zero if max-dimension is used,
+ * 0 if min-dimension is used.
+ */
+static inline void
+box2f_cscaleMoM(const box2f * a, float f, box2f * b, int maxflag)
+{
+    vec2f dim; box2f_rdDim(a, &dim); /* dimension */
+
+    float w = (maxflag ?		/* frame width */
+               float_max(dim.x, dim.y) :
+               float_min(dim.x, dim.y)) * (1.0f - f) * 0.5f;
+
+    vec2f s;			/* shift */
+    s.x = - w;
+    s.y = - w;
+
+    *b = *a;
+    box2f_extendself(b, &s);
+}
+
+/*!
+ * Read inner square of \p a scaled the factor \p f and put result in \p b.
+ */
+static inline void
+box2f_rdISqr(const box2f * a, float f, box2f * b)
+{
+    vec2f cen; box2f_rdCen(a, &cen); /* center */
+    vec2f dim; box2f_rdDim(a, &dim); /* dimension */
+    float s = float_min(dim.x, dim.y) / 2 * f; /* shift */
+
+    box2f_setSqr(b, &cen, s);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate sub-vec when \p ba is viewed relative to \p a and put
+ * result in \p b.
+ * The inverse operation of \c vec2f_rdRel().
+ */
+static inline void
+vec2f_rdSub(const box2f * a, const vec2f * ba, vec2f * b)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    vec2f_set(b,
+              a->l.x + ad.x * ba->x,
+              a->l.y + ad.y * ba->y);
+}
+
+/*!
+ * Compute the relative vector \p ba when \p b is viewed in relation
+ * to \p a.
+ * The inverse operation of \c vec2f_rdSub().
+ */
+static inline void
+vec2f_rdRel(const box2f * a, const vec2f * b, vec2f * ba)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    ba->x = (b->x - a->l.x) / ad.x;
+    ba->y = (b->y - a->l.y) / ad.y;
+}
+
+/*!
+ * Relative Affine Transform.
+ *
+ * Upon changing \p prev_ext to \p next_ext change the \p src to @p
+ * dst accordingly so that the \p src relative size position relative to
+ * \p prev_ext is preserved.
+ */
+static inline void
+vec2f_relaffine(const box2f * prev_ext, const box2f * next_ext,
+                const vec2f * src, vec2f * dst)
+{
+    vec2f rel_ext;	/* relative extents */
+    vec2f_rdRel(prev_ext, src, &rel_ext); /* child relative-to parent */
+    vec2f_rdSub(next_ext, &rel_ext, dst); /* place relative next_ext */
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate Sub-Box when [\p rlx, \p rly, \p rux, \p ruy]
+ * is viewed relative to \p a and put result in \p b.
+ * The inverse operation of \c box2f_rdRel().
+ */
+static inline void
+box2f_rdSubs(const box2f * a,
+             float rlx, float rly, float rux, float ruy,
+             box2f * b)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    box2f_set(b,
+              a->l.x + ad.x * rlx,
+              a->l.y + ad.y * rly,
+              a->l.x + ad.x * rux,
+              a->l.y + ad.y * ruy);
+}
+
+/*!
+ * Calculate Sub-Box when \p ba is viewed relative to \p a and put
+ * result in \p b.
+ * The inverse operation of \c box2f_rdRel().
+ */
+static inline void
+box2f_rdSub(const box2f * a, const box2f * ba, box2f * b)
+{
+    box2f_rdSubs(a,
+                 ba->l.x, ba->l.y, ba->u.x, ba->u.y,
+                 b);
+}
+
+/*!
+ * Compute the Relative Box \p ba when \p b is viewed in relation to \p a.
+ * The inverse operation of \c box2f_rdSub().
+ * \return 1 if a relative box was defined, 0 otherwise.
+ */
+static inline int
+box2f_rdRel(const box2f * a, const box2f * b, box2f * ba)
+{
+    int ret = 0;
+    vec2f ad; box2f_rdDim(a, &ad);
+    ba->l.x = (b->l.x - a->l.x) / ad.x;
+    ba->l.y = (b->l.y - a->l.y) / ad.y;
+    ba->u.x = (b->u.x - a->l.x) / ad.x;
+    ba->u.y = (b->u.y - a->l.y) / ad.y;
+    if (ad.x != 0 && ad.y != 0) { ret = 1; }
+    else { PWARN("Relative box is undefined\n"); }
+    return ret;
+}
+
+/*!
+ * Relative Affine Transform.
+ *
+ * Upon changing \p prev_ext to \p next_ext change the \p src to @p
+ * dst accordingly so that the \p src relative size position relative to
+ * \p prev_ext is preserved.
+ *
+ * \return 1 if a relative affine could be performed, 0 otherwise.
+ */
+static inline int
+box2f_relaffine(const box2f * prev_ext, const box2f * next_ext,
+                const box2f * src, box2f * dst)
+{
+    box2f rel_ext;	/* relative extents */
+    int ret = box2f_rdRel(prev_ext, src, &rel_ext); /* child relative-to parent */
+    if (ret) {
+        box2f_rdSub(next_ext, &rel_ext, dst); /* place relative next_ext */
+    }
+    return ret;
+}
+
+/*!
+ * Step \p a its whole dimensions one step to the "Bottom-Right".
+ */
+static inline void
+box2f_stepBR(const box2f * a, box2f * b)
+{
+    b->l.x = a->u.x;
+    b->l.y = a->u.y;
+    b->u.x = a->u.x + (a->u.x - a->l.x);
+    b->u.y = a->u.y + (a->u.y - a->l.y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Left-aligned Horizontal Scale \p a the factor \p f and put the
+ * result in \p b.
+ */
+static inline void
+box2f_scaleLH(const box2f * a, float f, box2f * b)
+{
+    float aw = a->u.x - a->l.x;	/* width of a */
+    b->l.x = a->l.x;
+    b->l.y = a->l.y;
+    b->u.x = a->l.x + aw * f;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Right-aligned Horizontal Scale \p a the factor \p f and put the
+ * result in \p b.
+ */
+static inline void
+box2f_scaleRH(const box2f * a, float f, box2f * b)
+{
+    float aw = a->u.x - a->l.x;	/* width of a */
+    b->l.x = a->u.x - aw * f;
+    b->l.y = a->l.y;
+    b->u.x = a->u.x;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Top-aligned Vertical Scale \p a the factor \p f and put the result
+ * in \p b.
+ */
+static inline void
+box2f_scaleTV(const box2f * a, float f, box2f * b)
+{
+    float ah = a->u.y - a->l.y;	/* height of a */
+    b->l.x = a->l.x;
+    b->l.y = a->l.y;
+    b->u.x = a->u.x;
+    b->u.y = a->l.y + ah * f;
+}
+
+/*!
+ * Bottom-aligned Vertical Scale \p a the factor \p f and put the
+ * result in \p b.
+ */
+static inline void
+box2f_scaleBV(const box2f * a, float f, box2f * b)
+{
+    float ah = a->u.y - a->l.y;	/* height of a */
+    b->l.x = a->l.x;
+    b->l.y = a->u.y - ah * f;
+    b->u.x = a->u.x;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Center-aligned Horizontal Scale \p a the factor \p f and put the
+ * result in \p b.
+ */
+static inline void
+box2f_scaleCH(const box2f * a, float f, box2f * b)
+{
+    float aw = a->u.x - a->l.x;	/* width of a */
+    b->l.x = a->l.x + aw * (1 - f) * 0.5f;
+    b->l.y = a->l.y;
+    b->u.x = a->u.x - aw * (1 - f) * 0.5f;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Center-aligned Vertical Scale \p a the factor \p f and put the
+ * result in \p b.
+ */
+static inline void
+box2f_scaleCV(const box2f * a, float f, box2f * b)
+{
+    float ah = a->u.y - a->l.y;	/* height of a */
+    b->l.x = a->l.x;
+    b->l.y = a->l.y + ah * (1 - f) * 0.5f;
+    b->u.x = a->u.x;
+    b->u.y = a->u.y - ah * (1 - f) * 0.5f;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Extract Horizontal Subbox of \p a from \p i to \p j.
+ */
+static inline void
+box2f_subH(const box2f * a,
+           float i, float j,
+           box2f * b)
+{
+    float aw = a->u.x - a->l.x;	/* width of a */
+    float alx = a->l.x;
+    b->l.x = alx + aw * i;
+    b->l.y = a->l.y;
+    b->u.x = alx + aw * j;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Extract Vertical Subbox of \p a from \p i to \p j.
+ */
+static inline void
+box2f_subV(const box2f * a,
+           float i, float j,
+           box2f * b)
+{
+    float ah = a->u.y - a->l.y;	/* height of a */
+    float aly = a->l.y;
+    b->l.x = a->l.x;
+    b->l.y = aly + ah * i;
+    b->u.x = a->u.x;
+    b->u.y = aly + ah * j;
+}
+
+/*!
+ * Extract Horizontal Subbox of \p a from \p i / \p n to \p j / \p n.
+ */
+static inline void
+box2f_subHi(const box2f * a,
+            int i, int j, int n,
+            box2f * b)
+{
+    float aw = a->u.x - a->l.x;	/* width of a */
+    float alx = a->l.x;
+    b->l.x = alx + aw * i / n;
+    b->l.y = a->l.y;
+    b->u.x = alx + aw * j / n;
+    b->u.y = a->u.y;
+}
+
+/*!
+ * Extract Vertical Subbox of \p a from \p i / \p n to \p j / \p n.
+ */
+static inline void
+box2f_subVi(const box2f * a,
+            int i, int j, int n,
+            box2f * b)
+{
+    float ah = a->u.y - a->l.y;	/* height of a */
+    float aly = a->l.y;
+    b->l.x = a->l.x;
+    b->l.y = aly + ah * (float)i / n;
+    b->u.x = a->u.x;
+    b->u.y = aly + ah * (float)j / n;
+}
+
+/*!
+ * Extract Horizontal and Vertical Subbox of \p a from \p i / \p n to
+ * (\p i + \p l) / \p n in int-precision.
+ */
+static inline void
+box2f_subHVij_i(const box2f * a,
+                int ix, int lx, int nx,
+                int iy, int ly, int ny,
+                box2f * b)
+{
+    vec2f dim; box2f_rdDim(a, &dim);
+    float alx = a->l.x, aly = a->l.y;
+    b->l.x = alx + dim.x * ix / nx;
+    b->l.y = aly + dim.y * iy / ny;
+    b->u.x = alx + dim.x * (ix + lx) / nx;
+    b->u.y = aly + dim.y * (iy + ly) / ny;
+}
+
+/*!
+ * Extract Horizontal and Vertical Subbox of \p a from \p i / \p n to
+ * (\p i + \p l) / \p n in float-precision.
+ */
+static inline void
+box2f_subHVij_f(const box2f * a,
+                float ix, float lx, float nx,
+                float iy, float ly, float ny,
+                box2f * b)
+{
+    vec2f dim; box2f_rdDim(a, &dim);
+    float alx = a->l.x, aly = a->l.y;
+    b->l.x = alx + dim.x * ix / nx;
+    b->l.y = aly + dim.y * iy / ny;
+    b->u.x = alx + dim.x * (ix + lx) / nx;
+    b->u.y = aly + dim.y * (iy + ly) / ny;
+}
+
+/*!
+ * Extract Horizontal and Vertical Subbox of \p a from \p i / \p n to
+ * (\p i + \p l) / \p n in double-precision.
+ */
+static inline void
+box2f_subHVij_d(const box2f * a,
+                double ix, double lx, double nx,
+                double iy, double ly, double ny,
+                box2f * b)
+{
+    vec2f dim; box2f_rdDim(a, &dim);
+    float alx = a->l.x, aly = a->l.y;
+    b->l.x = alx + dim.x * ix / nx;
+    b->l.y = aly + dim.y * iy / ny;
+    b->u.x = alx + dim.x * (ix + lx) / nx;
+    b->u.y = aly + dim.y * (iy + ly) / ny;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a lies inclusively inside \p b along x.
+ */
+static inline int
+box2f_insideX_box2f(const box2f * a, const box2f * b)
+{
+    return (b->l.x <= a->l.x && a->u.x <= b->u.x); /* covers along x */
+}
+
+/*!
+ * Return non-zero if \p a lies inclusively inside \p b along y.
+ */
+static inline int
+box2f_insideY_box2f(const box2f * a, const box2f * b)
+{
+    return (b->l.y <= a->l.y && a->u.y <= b->u.y); /* covers along y */
+}
+
+/*!
+ * Return non-zero if \p a lies inclusively inside b.
+ */
+static inline int
+box2f_inside_box2f(const box2f * a, const box2f * b)
+{
+    return (box2f_insideX_box2f(a, b) && /* covers along x */
+            box2f_insideY_box2f(a, b)); /* covers along y */
+}
+
+/*!
+ * Return non-zero if \p a lies beside b.
+ */
+static inline int
+box2f_beside(const box2f * a, const box2f * b)
+{
+    return (a->u.x < b->l.x ||  // left of
+            a->l.x > b->u.x ||  // right of
+            a->u.y < b->l.y ||  // above
+            a->l.y > b->u.y);   // below
+}
+
+static inline int
+box2f_beside_vec2f(const box2f * a, const vec2f * b)
+{
+    return (a->u.x < b->x ||  // left of
+            a->l.x > b->x ||  // right of
+            a->u.y < b->y ||  // above
+            a->l.y > b->y);   // below
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b. \em fdf.
+ */
+static inline int
+box2f_overlap_box2f(const box2f * a, const box2f * b)
+{
+    return ! box2f_beside(a, b);
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+static inline int
+box2f_covers_vec2f(const box2f * a, const vec2f * b)
+{
+    return ! box2f_beside_vec2f(a, b);
+}
+
+/*!
+ * Return non-zero if \p a lies inside \p b.
+ * \note alias to \c box2f_covers_vec2f().
+ */
+static inline int
+vec2f_inside_box2f(const vec2f * a, const box2f * b)
+{
+    return (box2f_covers_vec2f(b, a));
+}
+
+/*!
+ * Return non-zero if \p a completely covers b.
+ */
+static inline int
+box2f_covers_box2f(const box2f * a, const box2f * b)
+{
+    return box2f_inside_box2f(b, a);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Unite \p a and \p b into \p c.
+ */
+static inline void
+box2f_unitev(const box2f * a, const vec2f * b, box2f * c)
+{
+    c->l.x = float_min(a->l.x, b->x);
+    c->l.y = float_min(a->l.y, b->y);
+    c->u.x = float_max(a->u.x, b->x);
+    c->u.y = float_max(a->u.y, b->y);
+}
+
+/*!
+ * Unite \p a and \p b into \p c.
+ */
+static inline void
+box2f_unite(const box2f * a, const box2f * b, box2f * c)
+{
+    c->l.x = float_min(a->l.x, b->l.x);
+    c->l.y = float_min(a->l.y, b->l.y);
+    c->u.x = float_max(a->u.x, b->u.x);
+    c->u.y = float_max(a->u.y, b->u.y);
+}
+
+/*!
+ * Unite \p a and \p b into \p a.
+ */
+static inline void
+box2f_uniteself(box2f * a, const box2f * b)
+{
+    box2f_unite(a, b, a);
+}
+
+/*!
+ * Unite \p a and \p b into \p a.
+ */
+static inline void
+box2f_unitevself(box2f * a, const vec2f * b)
+{
+    box2f_unitev(a, b, a);
+}
+
+/*!
+ * Truncate box \p a to fit inside \p b and put result in \p c.
+ */
+static inline void
+box2f_truncInto(const box2f * a, const box2f * b, box2f * c)
+{
+    const box2f t = *b;		/* temporary */
+    c->l.x = float_clamp(t.l.x, a->l.x, t.u.x);
+    c->u.x = float_clamp(t.l.x, a->u.x, t.u.x);
+    c->l.y = float_clamp(t.l.y, a->l.y, t.u.y);
+    c->u.y = float_clamp(t.l.y, a->u.y, t.u.y);
+}
+
+/*!
+ * Intersect \p a and \p b into \p c.
+ * \return non-zero if an intersection region with a non-zero area was found.
+ */
+static inline int
+box2f_intersect(const box2f * a, const box2f * b, box2f * c)
+{
+    if (! (a->u.x < b->l.x ||
+           a->u.y < b->l.y ||
+           b->u.x < a->l.x ||
+           b->u.y < a->l.y)) {
+        c->l.x = float_max(a->l.x, b->l.x);
+        c->l.y = float_max(a->l.y, b->l.y);
+        c->u.x = float_min(a->u.x, b->u.x);
+        c->u.y = float_min(a->u.y, b->u.y);
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Indexing of box \p a at \p i.
+ */
+static inline vec2f
+box2f_at(const box2f * a, int i)
+{
+    return (&a->l)[i];
+}
+
+/*!
+ * Indexing of box \p a at limit \p i along dimensinon j, or for short at (i,j).
+ */
+static inline float
+box2f_at2(const box2f * a, int i, int j)
+{
+    return (&(&a->l)[i].x)[j];
+}
+
+/*!
+ * Check whether box \p a has zero dimensions.
+ */
+static inline int
+box2f_isPoint(const box2f * a)
+{
+    return (a->l.x == a->u.x &&
+            a->l.y == a->u.y);
+}
+
+static inline void
+box2f_fprint(FILE * stream, const box2f * a)
+{
+    if (a) {
+        fprintf(stream, "[[%f,%f],[%f,%f]]",
+                a->l.x, a->l.y, a->u.x, a->u.y);
+    } else {
+        fprintf(stream, "(nil)");
+    }
+}
+
+static inline void
+box2f_print(const box2f * a)
+{
+    box2f_fprint(stdout, a);
+}
+
+/*!
+ * Determine the Spatial Relation between the two boxes \p a and \p b.
+ *
+ * \return relation as an integer that is > 0 if \p a and \p b are spatially
+ * separated. Individually
+ * - bit 0 is set if \p a lies before \p b along dimension 0
+ * - bit 1 is set if \p b lies before \p a along dimension 0
+ * - bit 2 is set if \p a lies before \p b along dimension 1
+ * - bit 3 is set if \p a lies before \p b along dimension 1
+ */
+static inline uint
+box2f_relate(const box2f * a, const box2f * b)
+{
+    return ((a->u.x < b->l.x) << 0 | // left of
+            (a->l.x > b->u.x) << 1 | // right of
+            (a->u.y < b->l.y) << 2 | // above
+            (a->l.y > b->u.y) << 3); // below
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * \em Linearly \em Interpolate from \p src to \p dst at progress \p prg and put result in \p curr.
+ */
+static inline void
+box2f_linterpol(const box2f * src, float prg, const box2f * dst, box2f * curr)
+{
+    vec2f_linterpol(&src->l, prg, &dst->l, &curr->l);
+    vec2f_linterpol(&src->u, prg, &dst->u, &curr->u);
+}
+
+/*!
+ * \em Linearly \em Interpolate Array from \p src[i] to \p dst[i] at common progress \p prg and
+ * put result in \p curr[i].
+ */
+void
+box2farray_linterpol(const box2f * src, float prg, const box2f * dst,
+                     box2f * curr, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Matrix.
+ *
+ * Maps the box-elements into a matrix as follows.
+ * [ m->l.x, m->l.y ]
+ * [ m->u.x, m->u.y ]
+ */
+typedef box2f mat2f;
+
+/*!
+ * Generate a Rotation Matrix with the angle \p a.
+ *
+ * Use generated matrix together with \c mat2f_mvprod() to rotate
+ * vectors.
+ *
+ * \param[in] angle Rotation Angle [Radians]
+ * \see vec2f_rot90() and vec2f_rotm90() for special cases
+ */
+static inline void
+mat2f_genRotation(mat2f * m, float angle)
+{
+    float c = cosf(angle);
+    float s = sinf(angle);
+
+    /***
+     * Borrowed this from mat2::rotation()'s:
+     *
+     * m(0,0) =  c; m(0,1) = -s;
+     * m(1,0) =  s; m(1,1) =  c;
+     */
+
+    m->l.x =  c; m->l.y = -s;
+    m->u.x =  s; m->u.y =  c;
+}
+
+/*!
+ * Matrix-Vector Product, y = A * x;
+ *
+ * Multiply the matrix \p a with the vector \p x and put result in \p y.
+ *
+ * \complexity 4 MUL, 2 ADD
+ * \see float_affine2d()
+ */
+static inline void
+mat2f_mvprod(vec2f * y, const mat2f * a, const vec2f * x)
+{
+    const float x_x = x->x, x_y = x->y; /* allows \p a and \p b to be equal */
+    y->x = a->l.x * x_x + a->l.y * x_y;
+    y->y = a->u.x * x_x + a->u.y * x_y;
+}
+
+/*!
+ * Matrix-Vector (Self) Multiply, y = A * y;
+ *
+ * \complexity 4 MUL, 2 ADD
+ */
+static inline void
+vec2f_mvmul_mat2f(vec2f * y, const mat2f * a)
+{
+    mat2f_mvprod(y, a, y);
+}
+
+/*!
+ * Matrix-Vector (Self) Multiply "around Point", y = A * (y-c) + c;
+ *
+ * \complexity 4 MUL, 4 ADD, 2 SUB
+ */
+static inline void
+mat2f_sub_mvmul_add(vec2f * y, const mat2f * a, vec2f * c)
+{
+    vec2f_sub(y, c);
+    mat2f_mvprod(y, a, y);
+    vec2f_add(y, c);
+}
+
+/*!
+ * Pointwise addition, Transform and multiply.
+ * d = (a * b) * M + c;
+ */
+static inline void
+mat2f_pwmul_mvmul_add(const vec2f * a, const vec2f * b,
+                      const mat2f * M, const vec2f * c,
+                      vec2f * d)
+{
+    vec2f_pwprod(a, b, d);
+    vec2f_mvmul_mat2f(d, M);
+    vec2f_add(d, c);
+}
+
+/*!
+ * Rotate set of \p vtxN number of vertices at \p vtx around position
+ * (center) \p cen the angle \p ang.
+ *
+ * \param[in] cen if non-NULL Center Position around which rotation is
+ *                performed, if NULL default center position to [0, 0].
+ * \param[in] ang rotation angle [Radians]
+ */
+void vec2farray_rot(vec2f * vtx, size_t vtxN,
+                    const vec2f * cen, float ang);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read Bounding Box of the array vtx of length vtxN into \p ext.
+ * \return 1 if ext was read, 0 otherwise.
+ */
+int
+vec2farray_rdBnd_box2f(const vec2f * vtx, size_t vtxN, box2f * ext);
+
+/*!
+ * Read Bounding Box of the pair \p pair into \p ext.
+ */
+static inline void
+vec2f_pair_rdBnd_box2f(const vec2f pair[2], box2f * ext)
+{
+    ext->l.x = float_min2(pair[0].x, pair[1].x);
+    ext->l.y = float_min2(pair[0].y, pair[1].y);
+    ext->u.x = float_max2(pair[0].x, pair[1].x);
+    ext->u.y = float_max2(pair[0].y, pair[1].y);
+}
+
+/*!
+ * Read Bounding Box of the Triangle \p tri into \p ext.
+ */
+
+static inline void
+vec2f_tri_rdBnd_box2f(const vec2f tri[3], box2f * ext)
+{
+    ext->l.x = float_min3(tri[0].x, tri[1].x, tri[2].x);
+    ext->l.y = float_min3(tri[0].y, tri[1].y, tri[2].y);
+    ext->u.x = float_max3(tri[0].x, tri[1].x, tri[2].x);
+    ext->u.y = float_max3(tri[0].y, tri[1].y, tri[2].y);
+}
+
+/*!
+ * Read Bounding Box of the Quad \p quad into \p ext.
+ */
+static inline void
+vec2f_quad_rdBnd_box2f(const vec2f quad[4], box2f * ext)
+{
+    ext->l.x = float_min4(quad[0].x, quad[1].x, quad[2].x, quad[3].x);
+    ext->l.y = float_min4(quad[0].y, quad[1].y, quad[2].y, quad[3].y);
+    ext->u.x = float_max4(quad[0].x, quad[1].x, quad[2].x, quad[3].x);
+    ext->u.y = float_max4(quad[0].y, quad[1].y, quad[2].y, quad[3].y);
+}
+
+/*!
+ * Read Bounding Box of the Pentagon \p pent into \p ext.
+ */
+static inline void
+vec2f_pent_rdBnd_box2f(const vec2f pent[5], box2f * ext)
+{
+    ext->l.x = float_min5(pent[0].x, pent[1].x, pent[2].x, pent[3].x, pent[4].x);
+    ext->l.y = float_min5(pent[0].y, pent[1].y, pent[2].y, pent[3].y, pent[4].y);
+    ext->u.x = float_max5(pent[0].x, pent[1].x, pent[2].x, pent[3].x, pent[4].x);
+    ext->u.y = float_max5(pent[0].y, pent[1].y, pent[2].y, pent[3].y, pent[4].y);
+}
+
+/*!
+ * Read Bounding Box of the Hexagon \p hex into \p ext.
+ */
+static inline void
+vec2f_hex_rdBnd_box2f(const vec2f hex[6], box2f * ext)
+{
+    ext->l.x = float_min6(hex[0].x, hex[1].x, hex[2].x, hex[3].x, hex[4].x, hex[5].x);
+    ext->l.y = float_min6(hex[0].y, hex[1].y, hex[2].y, hex[3].y, hex[4].y, hex[5].y);
+    ext->u.x = float_max6(hex[0].x, hex[1].x, hex[2].x, hex[3].x, hex[4].x, hex[5].x);
+    ext->u.y = float_max6(hex[0].y, hex[1].y, hex[2].y, hex[3].y, hex[4].y, hex[5].y);
+}
+
+/*!
+ * Read Bounding Box of the Heptagon \p hept into \p ext.
+ */
+static inline void
+vec2f_hept_rdBnd_box2f(const vec2f hept[6], box2f * ext)
+{
+    ext->l.x = float_min7(hept[0].x, hept[1].x, hept[2].x, hept[3].x, hept[4].x, hept[5].x, hept[6].x);
+    ext->l.y = float_min7(hept[0].y, hept[1].y, hept[2].y, hept[3].y, hept[4].y, hept[5].y, hept[6].y);
+    ext->u.x = float_max7(hept[0].x, hept[1].x, hept[2].x, hept[3].x, hept[4].x, hept[5].x, hept[6].x);
+    ext->u.y = float_max7(hept[0].y, hept[1].y, hept[2].y, hept[3].y, hept[4].y, hept[5].y, hept[6].y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_box2f(const box2f * a, chv_t * chv)
+{
+    int ret = 0;
+    ret += chv_enc_vec2f(&a->l, chv);
+    ret += chv_enc_vec2f(&a->u, chv);
+    return ret;
+}
+
+static inline int
+chv_dec_box2f(box2f * a, chv_t * chv)
+{
+    int cnt = 0, ret = 0;
+    if ((ret = chv_dec_vec2f(&a->l, chv)) >= 0) cnt += ret; else return ret;
+    if ((ret = chv_dec_vec2f(&a->u, chv)) >= 0) cnt += ret; else return ret;
+    return cnt;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the box \p a's limits [\c l, \c u] is "Not a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+box2f_is_NaN(const box2f * a)
+{
+    return (vec2f_is_NaN(&a->l) ||
+            vec2f_is_NaN(&a->u));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>all</em> of the box \p a's limits [\c l, \c u] is "Defined",
+ * that is "a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int box2f_is_defined(const box2f * a) { return !box2f_is_NaN(a); }
+
+static inline int box2f_is_empty(const box2f * a) { return !box2f_eq_sf(a, 0); }
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Swap the contents of \p a and \p b.
+ */
+static inline void box2f_swap(box2f * a, box2f * b)
+{
+    box2f tmp; tmp = *a; *a = *b; *b = tmp;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Shuffle all \p n elements contained in the \c box2f-array \p a.
+ */
+void
+box2farray_shuffle(box2f * a, size_t n);
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

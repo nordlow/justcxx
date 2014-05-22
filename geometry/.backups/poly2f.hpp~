@@ -1,0 +1,224 @@
+/*!
+ * \file poly2f.hpp
+ * \brief Two-dimensional Polygon
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ *
+ * \NOTE Before using a \c poly2f, say \c poly2f p;, it must be initialized with
+ * \c poly2f_init() or \c poly2f_init_poly2f(). After that this
+ * \c structure must be
+ * cleared with \c poly2f_clear(). To change the contents of a polygon use
+ * \c poly2f_set() or \c poly2f_set_copy().
+ */
+
+#pragma once
+
+#include "utils.h"
+#include "vec2f.h"
+#include "box2f.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional polyangle
+ */
+typedef struct
+{
+  vec2f  *v;			/**< Vertices Array. */
+  size_t  n;			/**< Number of vertices. */
+} poly2f;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Initialize \p a to the polygon containing \p vtxN vertices at \p vtx.
+ */
+static inline void
+poly2f_init(poly2f * a, const vec2f * vtx, size_t vtxN)
+{
+  if (vtx) {			/* normal init */
+    a->v = (vec2f*)malloc(vtxN * sizeof(vec2f));
+    memcpy(a->v, vtx, vtxN * sizeof(vec2f));
+  } else {			/* zero init */
+    a->v = (vec2f*) calloc(vtxN * sizeof(vec2f), 1);
+  }
+  a->n = vtxN;
+}
+
+/*!
+ * Initialize \p a to the polygon \p b.
+ */
+static inline void
+poly2f_init_poly2f(poly2f * a, const poly2f * b)
+{
+  if (a != b) {
+    poly2f_init(a, b->v, b->n);
+  }
+}
+
+/*!
+ * Reinitialize \p a to the polygon containing \p vtxN vertices at \p vtx.
+ */
+static inline void
+poly2f_set(poly2f * a, const vec2f * vtx, size_t vtxN)
+{
+  if (vtx && a->v == vtx) { PERR("vtx && a->v == vtx\n"); return; }
+
+  if (a->n != vtxN) {	/* if number of vertices change */
+    a->v = (vec2f*) realloc(a->v, vtxN * sizeof(vec2f)); /* reallocate vertices */
+  }
+
+  if (vtx) {			/* normal init */
+    memcpy(a->v, vtx, vtxN * sizeof(vec2f));
+  }
+
+  a->n = vtxN;
+}
+
+/*!
+ * Reinitialize \p a to the polygon \p b.
+ */
+static inline void
+poly2f_set_copy(poly2f * a, const poly2f * b)
+{
+  if (a != b) {
+    poly2f_set(a, b->v, b->n);
+  }
+}
+
+/*!
+ * Clear polygon \p a.
+ */
+static inline void
+poly2f_clear(poly2f * a)
+{
+  if (a->v) { free(a->v); a->v = 0; }
+  a->n = 0;
+}
+
+/*!
+ * Translate the sides of \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+poly2f_move(const poly2f * a, const vec2f * s, poly2f * b)
+{
+  if (a != b) {
+    poly2f_set(b, a->v, a->n);
+  }
+
+  for (size_t i = 0; i < a->n; i++) {
+    b->v[i].x = a->v[i].x + s->x;
+    b->v[i].y = a->v[i].y + s->y;
+  }
+}
+
+/*!
+ * Read Polygon Bounding Box.
+ * \return 1 if \p ext was read, 0 otherwise.
+ */
+static inline int
+poly2f_rdBnd_box2f_N(const poly2f * poly, box2f * ext)
+{
+  return vec2farray_rdBnd_box2f(poly->v, poly->n, ext);
+}
+
+/*!
+ * Read Polygon Bounding Box.
+ * \return 1 if \p ext was read, 0 otherwise.
+ */
+static inline int
+poly2f_rdBnd_box2f(const poly2f * poly, box2f * ext)
+{
+  int ret = 1;
+  switch (poly->n) {
+  case 1: box2f_set_Point(ext, &poly->v[0]); break;
+  case 2: vec2f_pair_rdBnd_box2f(poly->v, ext); break;
+  case 3: vec2f_tri_rdBnd_box2f(poly->v, ext); break;
+  case 4: vec2f_quad_rdBnd_box2f(poly->v, ext); break;
+  case 5: vec2f_pent_rdBnd_box2f(poly->v, ext); break;
+  case 6: vec2f_hex_rdBnd_box2f(poly->v, ext); break;
+  default: poly2f_rdBnd_box2f_N(poly, ext); break;
+  }
+  return ret;
+}
+
+/*!
+ * Read Polygon Center into \p cen.
+ *
+ * \param[out] cen Center for poly->n points.
+ */
+void poly2f_rdCen(const poly2f * poly, vec2f * cen);
+
+/*!
+ * Read Polygon Side Midpoints.
+ *
+ * \param[out] mids contains space for poly->n points.
+ */
+void poly2f_rdSideMids(const poly2f * poly, vec2f * mids);
+
+/*!
+ * Relative Affine Transform.
+ *
+ * Upon changing \p prev_ext to \p next_ext change the \p src to @p
+ * dst accordingly so that the \p src relative size position relative to
+ * \p prev_ext is preserved.
+ */
+void poly2f_relaffine(const box2f * prev_ext, const box2f * next_ext,
+		      const poly2f * src, poly2f * dst);
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg with
+ * transition \p trans and put result in \p curr.
+ */
+void poly2f_linterpol(const poly2f * src, float prg, const poly2f *dst,
+		      poly2f * curr);
+
+/*!
+ * Fit Polygon Poly precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+poly2f_ifit_box2f(poly2f * poly, const box2f * ext)
+{
+  int ret = 0;
+  box2f old_ext;
+  if (poly2f_rdBnd_box2f(poly, &old_ext)) {
+    poly2f_relaffine(&old_ext, ext, poly, poly);
+    ret = 1;
+  }
+  return ret;
+}
+
+void poly2f_fprint(FILE * stream, const poly2f * a);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_poly2f(const poly2f * a, chv_t * chv)
+{
+  int ret = 0;
+  const uint64_t n_U64 = a->n;
+  ret += chv_enc_u64be(chv, &n_U64);
+  ret += chv_enc_vec2farray(chv, a->v, a->n);
+  return ret;
+}
+
+static inline int
+chv_dec_poly2f(poly2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  uint64_t vtxN;
+  if ((ret = chv_dec_u64be(chv, &vtxN)) >= 0) cnt += ret; else return ret;
+  poly2f_set(a, 0, vtxN);
+  if ((ret = chv_dec_vec2farray(chv, a->v, a->n)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,0 +1,186 @@
+/*!
+ * \file tri2f.hpp
+ * \brief Two-dimensional Triangle.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "utils.h"
+#include "vec2f.h"
+#include "box2f.hpp"
+#include "mean.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional Triangle.
+ */
+typedef struct
+{
+  vec2f p;			/* First point. */
+  vec2f q;			/* Second point. */
+  vec2f r;			/* Third point. */
+} tri2f;
+
+/*!
+ * Set \p a to the triangle [px, py, qx, qy, rx, ry].
+ */
+static inline void
+tri2f_set(tri2f * a,
+	  float px, float py, float qx, float qy, float rx, float ry)
+{
+  a->p.x = px;
+  a->p.y = py;
+  a->q.x = qx;
+  a->q.y = qy;
+  a->r.x = rx;
+  a->r.y = ry;
+}
+
+/*!
+ * Set \p a to the triangle [p, q, r].
+ */
+static inline void
+tri2f_set_Points(tri2f * tri,
+		 const vec2f * p,
+		 const vec2f * q,
+		 const vec2f * r)
+{
+  tri->p = *p;
+  tri->q = *q;
+  tri->r = *r;
+}
+
+/*!
+ * Read triangle \p tri Bounding Box into \p box.
+ */
+static inline int
+tri2f_rdBnd_box2f(const tri2f * tri, box2f * box)
+{
+  int ret = 1;
+  box->l.x = float_min3(tri->p.x, tri->q.x, tri->r.x);
+  box->l.y = float_min3(tri->p.y, tri->q.y, tri->r.y);
+  box->u.x = float_max3(tri->p.x, tri->q.x, tri->r.x);
+  box->u.y = float_max3(tri->p.y, tri->q.y, tri->r.y);
+  return ret;
+}
+
+/*!
+ * Read triangle \p tri Mid Point into \p mid.
+ */
+static inline void
+tri2f_rdMid(const tri2f * tri, vec2f * mid)
+{
+  mid->x = float_mean3(tri->p.x, tri->q.x, tri->r.x);
+  mid->y = float_mean3(tri->p.y, tri->q.y, tri->r.y);
+}
+
+/*!
+ * Get triangle \p Mid Point.
+ */
+static inline vec2f
+tri2f_gMid(const tri2f * tri)
+{
+  vec2f mid;
+  tri2f_rdMid(tri, &mid);
+  return mid;
+}
+
+/*!
+ * Calculate sub-tri when \p ba is viewed relative to \p a and put result in \p b.
+ *
+ * The inverse operation of \c tri2f_rdRel().
+ */
+static inline void
+tri2f_rdSub(const box2f * a, const tri2f * ba, tri2f * b)
+{
+  vec2f ad; box2f_rdDim(a, &ad);
+  vec2f_set(&b->p, a->l.x + ad.x * ba->p.x, a->l.y + ad.y * ba->p.y);
+  vec2f_set(&b->q, a->l.x + ad.x * ba->q.x, a->l.y + ad.y * ba->q.y);
+  vec2f_set(&b->r, a->l.x + ad.x * ba->r.x, a->l.y + ad.y * ba->r.y);
+}
+
+/*!
+ * Compute the relative triangle \p ba when \p b is viewed in relation to \p a.
+ *
+ * The inverse operation of \c tri2f_rdSub().
+ */
+static inline void
+tri2f_rdRel(const box2f * a, const tri2f * b, tri2f * ba)
+{
+  vec2f ad; box2f_rdDim(a, &ad);
+  vec2f_set(&ba->p, (b->p.x - a->l.x) / ad.x, (b->p.y - a->l.y) / ad.y);
+  vec2f_set(&ba->q, (b->q.x - a->l.x) / ad.x, (b->q.y - a->l.y) / ad.y);
+  vec2f_set(&ba->r, (b->r.x - a->l.x) / ad.x, (b->r.y - a->l.y) / ad.y);
+}
+
+/*!
+ * \em Linearly \em Interpolate from \p src to \p dst at progress \p prg with
+ * transition \p trans and put result in \p curr.
+ */
+static inline void
+tri2f_linterpol(const tri2f * src, float prg, const tri2f *dst, tri2f * curr)
+{
+  PTEST("\n");
+  vec2f_linterpol(&src->p, prg, &dst->p, &curr->p);
+  vec2f_linterpol(&src->q, prg, &dst->q, &curr->q);
+  vec2f_linterpol(&src->r, prg, &dst->r, &curr->r);
+}
+
+/*!
+ * Fit triangle tri precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+tri2f_ifit_box2f(tri2f * tri, const box2f * ext)
+{
+  int ret = 0;
+  box2f old_ext;
+  if (tri2f_rdBnd_box2f(tri, &old_ext)) {
+    vec2f_relaffine(&old_ext, ext, &tri->p, &tri->p);
+    vec2f_relaffine(&old_ext, ext, &tri->q, &tri->q);
+    vec2f_relaffine(&old_ext, ext, &tri->r, &tri->r);
+    ret = 1;
+  }
+  return ret;
+}
+
+static inline void
+tri2f_fprint(FILE * stream, const tri2f * a)
+{
+  fprintf(stream, "[[%f,%f],[%f,%f],[%f,%f]]",
+	  a->p.x, a->p.y, a->q.x, a->q.y, a->r.x, a->r.y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_tri2f(const tri2f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2f(&a->p, chv);
+  ret += chv_enc_vec2f(&a->q, chv);
+  ret += chv_enc_vec2f(&a->r, chv);
+  return ret;
+}
+
+static inline int
+chv_dec_tri2f(tri2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2f(&a->p, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2f(&a->q, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2f(&a->r, chv)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

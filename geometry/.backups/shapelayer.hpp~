@@ -1,0 +1,28 @@
+/*!
+ * \file shapelayer.hpp
+ * \brief Shape Layer
+ * \author Copyright (C) 2007 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+#include "utils.h"
+
+/*!
+ * Shape Layer.
+ */
+typedef uint32_t layer_t;
+
+#define VLAYER_LOWEST (UINT16_MIN) /**< Lowest Object Layer (possible) */
+#define VLAYER_HIGHEST (UINT16_MAX-1) /**< Highest object layer (possible) */
+
+/*!
+ * \em Linearly \em Interpolate from \p src to \p dst at progress \p prg and put result in \p curr.
+ */
+static inline void
+layer_linterpol(const layer_t src, float prg, const layer_t dst,
+		layer_t * curr)
+{
+  *curr = lrintf(src + ((float)dst - src) * prg);
+}

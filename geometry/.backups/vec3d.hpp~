@@ -1,0 +1,177 @@
+/*!
+ * \file vec3d.hpp
+ * \brief Two-dimensional Vector of doubles.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+#include "utils.h"
+#include "chv.h"
+#include "../extremes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of doubles.
+ */
+typedef struct
+{
+  double x;			/**< X Coordinate. */
+  double y;			/**< Y Coordinate. */
+  double z;			/**< z Coordinate. */
+} vec3d;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set \p a to the vector [\p x, \p y, \p z]
+ */
+static inline void
+vec3d_set(vec3d * a, double x, double y, double z)
+{
+  a->x = x;
+  a->y = y;
+  a->z = z;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Add [\p x, \p y, \p z] to \p a.
+ */
+static inline void
+vec3d_add(vec3d * a, double x, double y, double z)
+{
+  a->x += x;
+  a->y += y;
+  a->z += z;
+}
+
+/*!
+ * Subtract [\p x, \p y] from \p a.
+ */
+static inline void
+vec3d_sub(vec3d * a, double x, double y, double z)
+{
+  a->x -= x;
+  a->y -= y;
+  a->z -= z;
+}
+
+/*!
+ * Multiply \p a with the scalar \p x.
+ */
+static inline void
+vec3d_mulS(vec3d * a, double x)
+{
+  a->x *= x;
+  a->y *= x;
+  a->z *= x;
+}
+
+/*!
+ * Divide \p a with the scalar \p s.
+ */
+static inline void
+vec3d_divs(vec3d * a, double s)
+{
+  a->x /= s;
+  a->y /= s;
+  a->z /= s;
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in 1-norm.
+ */
+static inline double
+vec3d_dist1(const vec3d * a, const vec3d * b)
+{
+  return (ABS(a->x - b->x) +
+	  ABS(a->y - b->y) +
+	  ABS(a->z - b->z));
+}
+
+/*!
+ * Calculate the Euclidean Distance between \p a and \p b.
+ */
+static inline double
+vec3d_dist2(const vec3d * a, const vec3d * b)
+{
+  return float_hypot3d(a->x - b->x,
+		     a->y - b->y,
+		     a->z - b->z);
+}
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline double
+vec3d_at(const vec3d * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec3d_out_str(FILE * stream, const vec3d * a)
+{
+  fprintf(stream, "[%f,%f,%f]", a->x, a->y, a->z);
+}
+
+void
+vec3darray_fprint(FILE * stream, const vec3d * a, int n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec3d(const vec3d * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_f64be(chv, &a->x);
+  ret += chv_enc_f64be(chv, &a->y);
+  ret += chv_enc_f64be(chv, &a->z);
+  return ret;
+}
+
+static inline int
+chv_dec_vec3d(vec3d * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_f64be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f64be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f64be(chv, &a->z)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+int
+chv_enc_vec3darray(const vec3d * a, uint32_t vtxN, chv_t * chv);
+
+int
+chv_dec_vec3darray(vec3d * a, uint32_t vtxN, chv_t * chv);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the vector \p a's components [x, y, z] is
+ * "Not a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+vec3d_is_NaN(const vec3d * a)
+{
+  return (isnan(a->x) ||
+	  isnan(a->y));
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

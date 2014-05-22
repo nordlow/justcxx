@@ -1,0 +1,221 @@
+/*!
+ * \file vec2i.hpp
+ * \brief Two-dimensional Vector of ints.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "utils.h"
+#include "chv.h"
+#include "../extremes.h"
+
+#include <math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional Vector of ints.
+ */
+typedef struct
+{
+  int x;			/**< X Coordinate. */
+  int y;			/**< Y Coordinate. */
+} vec2i;
+
+/*!
+ * Set \p a to the vector [\p x, \p y].
+ */
+static inline void
+vec2i_set(vec2i * a, int x, int y)
+{
+  a->x = x;
+  a->y = y;
+}
+
+/*!
+ * Allocate and Initialize a vector [\p x, \p y].
+ */
+static inline vec2i *
+vec2i_new(int x, int y)
+{
+  vec2i * a = (vec2i*)malloc(sizeof(vec2i));
+  vec2i_set(a, x, y);
+  return a;
+}
+
+/*!
+ * Add [\p x, \p y] to \p a.
+ */
+static inline void
+vec2i_add(vec2i * a, int x, int y)
+{
+  a->x += x;
+  a->y += y;
+}
+
+/*!
+ * Multiply the scalar [x] to \p a.
+ */
+static inline void
+vec2i_mulS(vec2i * a, int x)
+{
+  a->x *= x;
+  a->y *= x;
+}
+
+/*!
+ * Subtract [\p x, \p y] from \p a.
+ */
+static inline void
+vec2i_sub(vec2i * a, int x, int y)
+{
+  a->x -= x;
+  a->y -= y;
+}
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2i_sum(const vec2i * a, const vec2i * b, vec2i * c)
+{
+  c->x = a->x + b->x;
+  c->y = a->y + b->y;
+}
+
+/*!
+ * Calculate the Arithmetic Mean of \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2i_mean(const vec2i * a, const vec2i * b, vec2i * c)
+{
+  c->x = (a->x + b->x) / 2;
+  c->y = (a->y + b->y) / 2;
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+vec2i_eq(const vec2i * a, const vec2i * b)
+{
+  return (a->x == b->x &&
+	  a->y == b->y);
+}
+
+/*!
+ * Calculate the difference between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2i_diff(const vec2i * a, const vec2i * b, vec2i * c)
+{
+  c->x = a->x - b->x;
+  c->y = a->y - b->y;
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in 1-norm.
+ */
+static inline int
+vec2i_dist1(const vec2i * a, const vec2i * b)
+{
+  return (ABS(a->x - b->x) +
+	  ABS(a->y - b->y));
+}
+
+/*!
+ * Calculate the 1-Norm of \p a.
+ */
+static inline int
+vec2i_norm1(const vec2i * a)
+{
+  return ABS(a->x) + ABS(a->y);
+}
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline int
+vec2i_at(const vec2i * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec2i_fprint(FILE * stream, const vec2i * a)
+{
+  fprintf(stream, "[%9d,%9d]", a->x, a->y);
+}
+
+static inline void
+vec2i_print(const vec2i * a)
+{
+  vec2i_fprint(stdout, a);
+}
+
+static inline void
+vec2iarray_fprint(FILE * stream, const vec2i * in, int n)
+{
+  int i;
+  for (i = 0; i < n; i++) {
+    vec2i_fprint(stream, &in[i]);
+    if (i < n - 1) {
+      putc(' ', stream);
+    } else {
+      putc('\n', stream);
+    }
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec2i(const vec2i * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_s32be(chv, &a->x);
+  ret += chv_enc_s32be(chv, &a->y);
+  return ret;
+}
+
+static inline int
+chv_dec_vec2i(vec2i * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_s32be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_s32be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+static inline int
+chv_enc_vec2iarray(const vec2i * a, uint32_t vtxN, chv_t * chv)
+{
+  int ret = 0;
+  for (uint32_t i = 0; i < vtxN; i++) {
+    ret += chv_enc_vec2i(&a[i], chv);
+  }
+  return ret;
+}
+
+static inline int
+chv_dec_vec2iarray(vec2i * a, uint32_t vtxN, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  for (uint32_t i = 0; i < vtxN; i++) {
+    if ((ret = chv_dec_vec2i(&a[i], chv)) >= 0) cnt += ret; else return ret;
+  }
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

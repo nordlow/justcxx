@@ -1,0 +1,101 @@
+/*!
+ * \file line2f.hpp
+ * \brief Two-dimensional line
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "utils.h"
+#include "vec2f.h"
+#include "box2f.hpp"
+#include "mean.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * Two-dimensional line
+ */
+typedef struct
+{
+  vec2f p;			/* First point. */
+  vec2f q;			/* Second point. */
+} line2f;
+
+/*!
+ * Set \p a to the line [px, py, qx, qy].
+ */
+static inline void
+line2f_set(line2f * a, float px, float py, float qx, float qy)
+{
+  a->p.x = px;
+  a->p.y = py;
+  a->q.x = qx;
+  a->q.y = qy;
+}
+
+/*!
+ * Set \p a to the line [p, q].
+ */
+static inline void
+line2_init_v(line2f * line, const vec2f * p, const vec2f * q)
+{
+  line->p = *p;
+  line->q = *q;
+}
+
+/*!
+ * Read line Bounding Box.
+ */
+static inline void
+line2f_rdBnd_box2f(const line2f * line, box2f * box)
+{
+  box->l.x = MIN2(line->p.x, line->q.x);
+  box->l.y = MIN2(line->p.y, line->q.y);
+  box->u.x = MAX2(line->p.x, line->q.x);
+  box->u.y = MAX2(line->p.y, line->q.y);
+}
+
+static inline void
+line2f_rdMid(const line2f * line, vec2f * m)
+{
+  m->x = float_mean2(line->p.x, line->q.x);
+  m->y = float_mean2(line->p.y, line->q.y);
+}
+
+static inline vec2f
+line2f_gMid(const line2f * line)
+{
+  vec2f m;
+  line2f_rdMid(line, &m);
+  return m;
+}
+
+/* static inline float */
+/* line2f_get_distance_to_infinite_line(const line2f * line, const vec2f * pos) */
+/* { */
+/*   vec2f aa = pos - a; */
+/*   vec2f bb = b - a; */
+/*   float orth_dist = norm(get_orthogonal_part(aa, bb)); */
+
+/*   return orth_dist; */
+/* } */
+
+/* static inline float */
+/* line2f_gMid_distance_to(const vec2f * pos) */
+/* { */
+/*   return dist(gMid(), pos); */
+/* } */
+
+static inline void
+line2f_fprint(FILE * stream, const line2f * a)
+{
+  fprintf(stream, "[[%f,%f],[%f,%f]]",
+	  a->p.x, a->p.y, a->q.x, a->q.y);
+}
+
+#ifdef __cplusplus
+}
+#endif

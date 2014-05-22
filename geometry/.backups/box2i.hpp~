@@ -1,0 +1,110 @@
+/*!
+ * \file box2i.hpp
+ * \brief Two-Dimensional Box of ints (integers).
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+/* ========================================================================= */
+
+#pragma once
+
+#include "vec2i.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*! Two-Dimensional Box of ints. */
+typedef struct
+{
+  vec2i l;			/**< Lower corner. */
+  vec2i u;			/**< Upper corner. */
+} box2i;
+
+/*! Set \p a to the box [\p lx, \p ly, \p ux, \p uy] */
+static inline void
+box2i_set(box2i * a, int lx, int ly, int ux, int uy)
+{
+  a->l.x = lx;
+  a->l.y = ly;
+  a->u.x = ux;
+  a->u.y = uy;
+}
+
+/*! Allocate and Initialize a box [\p lx, \p ly, \p ux, \p uy]. */
+static inline box2i *
+box2i_new(int lx, int ly, int ux, int uy)
+{
+  box2i * a = (box2i*)malloc(sizeof(box2i));
+  box2i_set(a, lx, ly, ux, uy);
+  return a;
+}
+
+/*! Read \p box Dimensions. */
+static inline void
+box2i_rdDim(const box2i * box, vec2i * dim)
+{
+  dim->x = box->u.x - box->l.x;
+  dim->y = box->u.y - box->l.y;
+}
+
+/*! Get \p box Area. */
+static inline long long
+box2i_getArea(const box2i * box)
+{
+  return (((long long)box->u.x - (long long)box->l.x) *
+	  ((long long)box->u.y - (long long)box->l.y));
+}
+
+/*! Indexing of box \p a at \p i. *
+ * \return edge i of box.
+ */
+static inline vec2i
+box2i_at(const box2i * a, int i)
+{
+  return (&a->l)[i];
+}
+
+static inline void
+box2i_fprint(FILE * stream, const box2i * a)
+{
+  fprintf(stream, "[[%11d,%11d],[%11d,%11d]]",
+	  a->l.x, a->l.y, a->u.x, a->u.y);
+}
+
+/*! \em Linearly \em Interpolate from \p src to \p dst at progress \p prg and
+ *  put result in \p curr. */
+static inline void
+box2i_linterpol(const box2i * src, float prg, const box2i * dst, box2i * curr)
+{
+  curr->l.x = lrintf(src->l.x + ((float)dst->l.x - src->l.x) * prg);
+  curr->l.y = lrintf(src->l.y + ((float)dst->l.y - src->l.y) * prg);
+  curr->u.x = lrintf(src->u.x + ((float)dst->u.x - src->u.x) * prg);
+  curr->u.y = lrintf(src->u.y + ((float)dst->u.y - src->u.y) * prg);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_box2i(const box2i * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2i(&a->l, chv);
+  ret += chv_enc_vec2i(&a->u, chv);
+  return ret;
+}
+
+static inline int
+chv_dec_box2i(box2i * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2i(&a->l, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2i(&a->u, chv)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,0 +1,329 @@
+/*!
+ * \file cring2f.hpp
+ * \brief Two-dimensional Circular Ring.
+ * \author Copyright (C) 2007 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "../linterpol.h"
+#include "../mean.h"
+#include "vec2f.hpp"
+#include "box2f.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional Ring of floats.
+ */
+typedef struct {
+  vec2f c;			/**< Center. */
+  float ri;			/**< Inner Radius. */
+  float ro;			/**< Outer Radius. */
+} cring2f;
+
+/*!
+ * Set \p a to the Circular Ring with center [\p cx, \p cy] and
+ * inner radius ri and outer radius ro.
+ */
+static inline void
+cring2f_set(cring2f * a, float cx, float cy,
+	    float ri, float ro)
+{
+  a->c.x = cx;
+  a->c.y = cy;
+  a->ri = ri;
+  a->ro = ro;
+}
+
+/*!
+ * Set \p a to the Circular Ring with center c and
+ * inner radius ri and outer radius ro.
+ */
+static inline void
+cring2f_setCrr(cring2f * a, const vec2f * c, float ri, float ro)
+{
+  cring2f_set(a, c->x, c->y, ri, ro);
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+cring2f_set_copy(cring2f * a, const cring2f * b)
+{
+  *a = *b;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Translate \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+cring2f_move(const cring2f * a, const vec2f * s, cring2f * b)
+{
+  vec2f_sum(&a->c, s, &b->c);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+cring2f_fprint(FILE * stream, const cring2f * a)
+{
+  if (a) {
+    fprintf(stream,
+	    "[c:[%f,%f],ri:%f,ro:%f]",
+	    a->c.x, a->c.y, a->ri, a->ro);
+  } else {
+    fprintf(stream, "(nil)");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * \em Linearly \em Interpolate from \p src to \p dst at progress \p prg with transition \p trans
+ * and put result in \p curr.
+ */
+static inline void
+cring2f_linterpol(const cring2f * src, float prg, const cring2f *dst,
+		  cring2f * curr)
+{
+  PTEST("\n");
+  vec2f_linterpol(&src->c, prg, &dst->c, &curr->c);
+  curr->ri = float_linterpol(src->ri, prg, dst->ri);
+  curr->ro = float_linterpol(src->ro, prg, dst->ro);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read Circular Ring-Segment \p rseg Center into \p cen.
+ */
+static inline void
+cring2f_rdCen(const cring2f * cring, vec2f * cen)
+{
+  *cen = cring->c;
+}
+
+/*!
+ * Read Circular Ring-Segment \p rseg Bounding Box into \p cen.
+ */
+static inline box2f
+cring2f_getBnd_box2f(const cring2f * cring)
+{
+  box2f box;
+  box2f_setSqr(&box, &cring->c, cring->ro);
+  return box;
+}
+
+/*!
+ * Get Circular Ring Inner Box.
+ */
+static inline box2f
+cring2f_getIBox(const cring2f * cring)
+{
+  box2f box;
+  const float irad = cring->ro * M_SQRT2_2; /* inner = radius * 1/sqrt(2) */
+  box2f_setSqr(&box, &cring->c, irad);
+  return box;
+}
+
+/*!
+ * Get Circular Ring \p cring Area.
+ */
+static inline float
+cring2f_getArea(const cring2f * cring)
+{
+  return M_PI * (SQR(cring->ro) - SQR(cring->ri));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate sub-cring when \p ba is viewed relative to \p a and put result in \p b.
+ *
+ * The inverse operation of \c cring2f_rdRel().
+ */
+static inline void
+cring2f_rdSub(const box2f * a, const cring2f * ba, cring2f * b)
+{
+  PTEST("\n");
+  vec2f ad; box2f_rdDim(a, &ad);
+  const float m = float_mean2(ad.x, ad.y);
+  cring2f_set(b,
+	      a->l.x + ad.x * ba->c.x,
+	      a->l.y + ad.y * ba->c.y,
+	      ba->ri * m,
+	      ba->ro * m);
+  if (ad.x != ad.y) {
+    PTODO("ad.x != ad.y => may result in an ellipse\n");
+  }
+}
+
+/*!
+ * The inverse operation of \c cring2f_rdSub().
+ */
+static inline void
+cring2f_rdRel(const box2f * a, const cring2f * b, cring2f * ba)
+{
+  PTEST("\n");
+  vec2f ad; box2f_rdDim(a, &ad);
+  const float m = float_mean2(ad.x, ad.y);
+  cring2f_set(ba,
+	      (b->c.x - a->l.x) / ad.x,
+	      (b->c.y - a->l.y) / ad.y,
+	      b->ri / m,
+	      b->ro / m);
+  if (ad.x != ad.y) {
+    PTODO("ad.x != ad.y => may result in an ellipse\n");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+cring2f_beside_point(const cring2f * a, const vec2f * b)
+{
+  return ((vec2f_dist2(&a->c, b) <  a->ri) ||
+	  (vec2f_dist2(&a->c, b) >= a->ro));
+}
+
+static inline int
+cring2f_covers_point(const cring2f * a, const vec2f * b)
+{
+  return ! cring2f_beside_point(a, b);
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+static inline int
+cring2f_beside_box(const cring2f * a, const box2f * b)
+{
+  PTEST("Function not verified\n");
+  const vec2f vtx[4] = { { b->l.x, b->l.y },
+			 { b->u.x, b->l.y },
+			 { b->u.x, b->u.y },
+			 { b->l.x, b->u.y } };
+  /* circle beside all box-corners => lies beside the whole box */
+  return (!cring2f_covers_point(a, &vtx[0]) &&
+	  !cring2f_covers_point(a, &vtx[1]) &&
+	  !cring2f_covers_point(a, &vtx[2]) &&
+	  !cring2f_covers_point(a, &vtx[3]));
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+static inline int
+cring2f_overlap_box2f(const cring2f * a, const box2f * b)
+{
+  PTODO("Function just partially correct\n");
+  return !cring2f_beside_box(a, b);
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+static inline int
+cring2f_covers_box(const cring2f * a, const box2f * b)
+{
+  PTODO("Function just partially correct\n");
+  const vec2f vtx[4] = { { b->l.x, b->l.y },
+			 { b->u.x, b->l.y },
+			 { b->u.x, b->u.y },
+			 { b->l.x, b->u.y } };
+  return (cring2f_covers_point(a, &vtx[0]) &&
+	  cring2f_covers_point(a, &vtx[1]) &&
+	  cring2f_covers_point(a, &vtx[2]) &&
+	  cring2f_covers_point(a, &vtx[3]));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Resize \p cring using the user (mouse) drag from \p mpos the shift \p mshift.
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+cring2f_shiftCtrlP(cring2f * cring,
+		   const vec2f * mpos, const vec2f * mshift,
+		   const vec2f * mindim, const uint8_t * ctrlPM)
+{
+  int ret = 1;
+  if (ctrlPM) {
+    if (GET_BIT(*ctrlPM, 0)) {
+      if (mshift) { vec2f_add(&cring->c, mshift); } /* center */
+    }
+    if (GET_BIT(*ctrlPM, 1)) {
+      vec2f pdir; vec2f_diff(&cring->c, mpos, &pdir);
+      if (mshift) { cring->ri -= vec2f_dot(&pdir, mshift) / vec2f_norm2(&pdir); }
+    }
+    if (GET_BIT(*ctrlPM, 2)) {
+      vec2f pdir; vec2f_diff(&cring->c, mpos, &pdir);
+      if (mshift) { cring->ro -= vec2f_dot(&pdir, mshift) / vec2f_norm2(&pdir); }
+    }
+  }
+  return ret;
+}
+
+/*!
+ * Fit \p cring precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+cring2f_ifit_box2f(cring2f * cring, const box2f * ext)
+{
+  int ret = 1;
+  vec2f cen, dim; box2f_rdCenDim(ext, &cen, &dim);
+  const float min_dim = float_min2(dim.x, dim.y);
+  cring2f_set(cring, cen.x, cen.y, min_dim/4, min_dim/2); /* inner square */
+  return ret;
+}
+
+/*!
+ * Set Outer Radius of \p cring to \p radO and scale inner radius
+ * linearly with change of outer radious.
+ */
+static inline void
+cring2f_setRadO_autoscaledRadI(cring2f * cring, float radO)
+{
+  const float old_or = cring->ro;
+  cring->ro = radO;
+  cring->ri = cring->ri * cring->ro / old_or; /* scale inner radius relatively */
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_cring2f(const cring2f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2f(&a->c, chv);
+  ret += chv_enc_f32be(chv, &a->ri);
+  ret += chv_enc_f32be(chv, &a->ro);
+  return ret;
+}
+
+static inline int
+chv_dec_cring2f(cring2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2f(&a->c, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->ri)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->ro)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

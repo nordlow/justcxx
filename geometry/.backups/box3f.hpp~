@@ -1,0 +1,311 @@
+/*!
+ * \file box3f.hpp
+ * \brief Two-Dimensional Box of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "vec3f.hpp"
+#include "box2f.hpp"
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * Three-dimensional box of floats.
+ */
+typedef struct
+{
+  vec3f l;			/**< Lower corner. */
+  vec3f u;			/**< Upper corner. */
+} box3f;
+
+/*!
+ * Set \p a to the box [lx, ly, lz, ux, uy, uz]
+ */
+static inline void
+box3_init(box3f * a,
+	  float lx, float ly, float lz,
+	  float ux, float uy, float uz)
+{
+  a->l.x = lx;
+  a->l.y = ly;
+  a->l.z = lz;
+
+  a->u.x = ux;
+  a->u.y = uy;
+  a->u.z = uz;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+box3f_set_copy(box3f * a, const box3f * b)
+{
+  *a = *b;
+}
+
+/*!
+ * Set \p a to the box [lx, ly, lz, ux, uy, uz].
+ */
+static inline void
+box3f_set(box3f * a,
+	  float lx, float ly, float lz,
+	  float ux, float uy, float uz)
+{
+  vec3f_set(&a->l, lx, ly, lz);
+  vec3f_set(&a->u, ux, uy, uz);
+}
+
+/*!
+ * Set \p a to the box [lx, ly, lz, ux, uy, uz].
+ */
+static inline void
+box3f_set_box2f(box3f * a, const box2f * b)
+{
+  /* z is ignored */
+  box3f_set(a,
+	    b->l.x, b->l.y, 0.0f,
+	    b->u.x, b->u.y, 0.0f);
+}
+
+/*!
+ * Set \p a to the square with Center at \p c with "side-radius" s
+ *
+ * More precisely set a to [c->x - s, c->y - s, c->x + s, c->y + s]
+ */
+static inline void
+box3f_setSqr(box3f * a, const vec3f * c, const float s)
+{
+  a->l.x = c->x - s;
+  a->l.y = c->y - s;
+  a->l.z = c->z - s;
+  a->u.x = c->x + s;
+  a->u.y = c->y + s;
+  a->u.z = c->z + s;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen.
+ */
+static inline void
+box3f_rdCen(const box3f * box, vec3f * cen)
+{
+  cen->x = (box->l.x + box->u.x) * 0.5f;
+  cen->y = (box->l.y + box->u.y) * 0.5f;
+  cen->z = (box->l.z + box->u.z) * 0.5f;
+}
+
+/*!
+ * Read \p box Dimensions into \p dim.
+ */
+static inline void
+box3f_rdDim(const box3f * box, vec3f * dim)
+{
+  dim->x = box->u.x - box->l.x;
+  dim->y = box->u.y - box->l.y;
+  dim->z = box->u.z - box->l.z;
+}
+
+/*!
+ * Read \p box "Radius" into \p rad.
+ */
+static inline void
+box3f_rdRad(const box3f * box, vec3f * rad)
+{
+  rad->x = (box->u.x - box->l.x) * 0.5f;
+  rad->y = (box->u.y - box->l.y) * 0.5f;
+  rad->z = (box->u.z - box->l.z) * 0.5f;
+}
+
+/*!
+ * Read \p box Dimensions scaled with \p scale and put into \p dim.
+ */
+static inline void
+box3f_rdSDim(const box3f * box, const vec3f * scale, vec3f * dim)
+{
+  dim->x = (box->u.x - box->l.x) * scale->x;
+  dim->y = (box->u.y - box->l.y) * scale->y;
+  dim->z = (box->u.z - box->l.z) * scale->z;
+}
+
+/*!
+ * Read \p box Dimensions scaled with scalar \p scale and put into \p dim.
+ */
+static inline void
+box3f_rdSDims(const box3f * box, float scale, vec3f * dim)
+{
+  dim->x = (box->u.x - box->l.x) * scale;
+  dim->y = (box->u.y - box->l.y) * scale;
+  dim->z = (box->u.z - box->l.z) * scale;
+}
+
+/*!
+ * Get \p box Dimension along dimension \p i.
+ */
+static inline float
+box3f_getDimi(const box3f * box, int i)
+{
+  if        (i == 0) {
+    return box->u.x - box->l.x;
+  } else if (i == 1) {
+    return box->u.y - box->l.y;
+  } else {
+    return box->u.z - box->l.z;
+  }
+}
+
+/*!
+ * Get \p box Volume.
+ */
+static inline float
+box3f_getVol(const box3f * box)
+{
+  return ((box->u.x - box->l.x) *
+	  (box->u.y - box->l.y) *
+	  (box->u.z - box->l.z));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen and Dimension into \p dim.
+ */
+static inline void
+box3f_rdCenDim(const box3f * box, vec3f * cen, vec3f * dim)
+{
+  box3f_rdCen(box, cen);
+  box3f_rdDim(box, dim);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Read \p box Center into \p cen and Radius into \p rad.
+ */
+static inline void
+box3f_rdCenRad(const box3f * box, vec3f * cen, vec3f * rad)
+{
+  box3f_rdCen(box, cen);
+  box3f_rdRad(box, rad);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Extend the sides of \p a the shift \p s.
+ */
+static inline void
+box3f_extend(box3f * a, const vec3f * s)
+{
+  a->l.x -= s->x;
+  a->l.y -= s->y;
+  a->l.z -= s->z;
+
+  a->u.x += s->x;
+  a->u.y += s->y;
+  a->u.z += s->z;
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+box3f_cscale(const box3f * a, float f, box3f * b)
+{
+  vec3f dim;			/* dimension */
+  vec3f s;			/* shift */
+
+  box3f_rdDim(a, &dim);
+
+  s.x = - (dim.x * (1 - f) * 0.5f);
+  s.y = - (dim.y * (1 - f) * 0.5f);
+  s.z = - (dim.z * (1 - f) * 0.5f);
+
+  *b = *a;
+  box3f_extend(b, &s);
+}
+
+/*!
+ * Unite \p a and \p b into \p c.
+ */
+static inline void
+box3f_unite(const box3f * a, const box3f * b, box3f * c)
+{
+  c->l.x = MIN2(a->l.x, b->l.x);
+  c->l.y = MIN2(a->l.y, b->l.y);
+  c->l.z = MIN2(a->l.z, b->l.z);
+
+  c->u.x = MAX2(a->u.x, b->u.x);
+  c->u.y = MAX2(a->u.y, b->u.y);
+  c->u.z = MAX2(a->u.z, b->u.z);
+}
+
+/*!
+ * Intersect \p a and \p b into \p c.
+ * \return non-zero if an intersection region with a non-zero area was found.
+ */
+static inline int
+box3f_intersect(const box3f * a, const box3f * b, box3f * c)
+{
+  if (! (a->u.x < b->l.x ||
+	 a->u.y < b->l.y ||
+	 a->u.z < b->l.z ||
+	 b->u.x < a->l.x ||
+	 b->u.y < a->l.y ||
+	 b->u.z < a->l.z)) {
+    c->l.x = MAX2(a->l.x, b->l.x);
+    c->l.y = MAX2(a->l.y, b->l.y);
+    c->l.z = MAX2(a->l.z, b->l.z);
+
+    c->u.x = MIN2(a->u.x, b->u.x);
+    c->u.y = MIN2(a->u.y, b->u.y);
+    c->u.z = MIN2(a->u.z, b->u.z);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+/*!
+ * Indexing of box \p a at \p i.
+ */
+static inline vec3f
+box3f_at(const box3f * a, int i)
+{
+  return (&a->l)[i];
+}
+
+static inline void
+box3f_out_str(FILE * stream, const box3f * a)
+{
+  fprintf(stream, "[[%f,%f,%f],[%f,%f,%f]]",
+	  a->l.x, a->l.y, a->l.z,
+	  a->u.x, a->u.y, a->u.z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the box \p a's limits [\c l, \c u] is "Not a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+box3f_is_NaN(const box3f * a)
+{
+  return (vec3f_is_NaN(&a->l) ||
+	  vec3f_is_NaN(&a->u));
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

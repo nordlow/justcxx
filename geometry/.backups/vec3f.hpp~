@@ -1,0 +1,684 @@
+/*!
+ * \file vec3f.hpp
+ * \brief Two-dimensional Vector of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+
+#include "utils.h"
+#include "chv.h"
+#include "../extremes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of floats.
+ */
+typedef struct
+{
+  float x;			/**< X Coordinate. */
+  float y;			/**< Y Coordinate. */
+  float z;			/**< z Coordinate. */
+} vec3f;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set \p a to the vector [\p x, \p y, \p z]
+ */
+static inline void
+vec3f_set(vec3f * a, float x, float y, float z)
+{
+  a->x = x;
+  a->y = y;
+  a->z = z;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Allocate and Initialize a vector [\p x, \p y, \p z].
+ */
+static inline vec3f *
+vec3f_new(float x, float y, float z)
+{
+  vec3f * a = (vec3f*)malloc(sizeof(vec3f));
+  vec3f_set(a, x, y, z);
+  return a;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Add \p b to \p a.
+ */
+static inline void
+vec3f_add(vec3f * a, const vec3f * b)
+{
+  a->x += b->x;
+  a->y += b->y;
+  a->z += b->z;
+}
+
+/*!
+ * Add [\p x, \p y, \p z] to \p a.
+ */
+static inline void
+vec3f_addxyz(vec3f * a, float x, float y, float z)
+{
+  a->x += x;
+  a->y += y;
+  a->z += z;
+}
+
+/*!
+ * Add the Scalar \p s to \p a.
+ */
+static inline void
+vec3f_adds(vec3f * a, float s)
+{
+  a->x += s;
+  a->y += s;
+  a->z += s;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Subtract from \p a the \p b.
+ */
+static inline void
+vec3f_sub(vec3f * a, const vec3f * b)
+{
+  a->x -= b->x;
+  a->y -= b->y;
+  a->z -= b->z;
+}
+
+/*!
+ * Subtract [\p x, \p y] from \p a.
+ */
+static inline void
+vec3f_subxyz(vec3f * a, float x, float y, float z)
+{
+  a->x -= x;
+  a->y -= y;
+  a->z -= z;
+}
+
+/*!
+ * Subtract from \p a the Scalar \p s.
+ */
+static inline void
+vec3f_subs(vec3f * a, float s)
+{
+  a->x -= s;
+  a->y -= s;
+  a->z -= s;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Multiply \p a with the scalar \p s.
+ */
+static inline void
+vec3f_mulS(vec3f * a, float s)
+{
+  a->x *= s;
+  a->y *= s;
+  a->z *= s;
+}
+
+/*!
+ * Scale \p a with the scalar \p s.
+ */
+static inline void
+vec3f_scale(vec3f * a, float s)
+{
+  vec3f_mulS(a, s);
+}
+
+/*!
+ * Multiply \p a with [\p x, \p y, \p z].
+ */
+static inline void
+vec3f_mulxyz(vec3f * a, float x, float y, float z)
+{
+  a->x *= x;
+  a->y *= y;
+  a->z *= z;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Divide \p a with the scalar \p s.
+ */
+static inline void
+vec3f_divs(vec3f * a, float s)
+{
+  a->x /= s;
+  a->y /= s;
+  a->z /= s;
+}
+
+/*!
+ * Divide \p a with [\p x, \p y, \p z].
+ */
+static inline void
+vec3f_divxyz(vec3f * a, float x, float y, float z)
+{
+  a->x /= x;
+  a->y /= y;
+  a->z /= z;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_sum(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = a->x + b->x;
+  c->y = a->y + b->y;
+  c->z = a->z + b->z;
+}
+
+/*!
+ * Sum \p a and [b,b,b] and put it in \p c.
+ */
+static inline void
+vec3f_sums(const vec3f * a, const float b, vec3f * c)
+{
+  c->x = a->x + b;
+  c->y = a->y + b;
+  c->z = a->z + b;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the Arithmetic Mean of \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_mean(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = (a->x + b->x) * 0.5f;
+  c->y = (a->y + b->y) * 0.5f;
+  c->z = (a->z + b->z) * 0.5f;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and the scalar \p b are equal.
+ */
+static inline int
+vec3f_eqs(const vec3f * a, float b)
+{
+  return (a->x == b &&
+	  a->y == b &&
+	  a->z == b);
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+vec3f_eq(const vec3f * a, const vec3f * b)
+{
+  return (a->x == b->x &&
+	  a->y == b->y &&
+	  a->z == b->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and \p b are not equal.
+ */
+static inline int
+vec3f_neq(const vec3f * a, const vec3f * b)
+{
+  return (a->x != b->x ||
+	  a->y != b->y ||
+	  a->z != b->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if the vec3f-arrays \p a and \p b both length \p n are equal.
+ */
+static inline int
+vec3farray_eq(const vec3f * a, const vec3f * b, size_t n)
+{
+  return memcmp(a, b, n * sizeof(vec3f)) != 0;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the difference between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_diff(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = a->x - b->x;
+  c->y = a->y - b->y;
+  c->z = a->z - b->z;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pointwise Minimum between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_min(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = float_min(a->x, b->x);
+  c->y = float_min(a->y, b->y);
+  c->z = float_min(a->z, b->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pointwise Maximum between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_max(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = float_max(a->x, b->x);
+  c->y = float_max(a->y, b->y);
+  c->z = float_max(a->z, b->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pointwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwprod(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = a->x * b->x;
+  c->y = a->y * b->y;
+  c->z = a->z * b->z;
+}
+
+/*!
+ * Pointwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwprodxy(const vec3f * a, float bx, float by, float bz, vec3f * c)
+{
+  c->x = a->x * bx;
+  c->y = a->y * by;
+  c->z = a->z * bz;
+}
+
+/*!
+ * Pointwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwprods(const vec3f * a, float b, vec3f * c)
+{
+  c->x = a->x * b;
+  c->y = a->y * b;
+  c->z = a->z * b;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pointwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwquot(const vec3f * a, const vec3f * b, vec3f * c)
+{
+  c->x = a->x / b->x;
+  c->y = a->y / b->y;
+  c->z = a->z / b->z;
+}
+
+/*!
+ * Pointwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwquots(const vec3f * a, const float b, vec3f * c)
+{
+  c->x = a->x / b;
+  c->y = a->y / b;
+  c->z = a->z / b;
+}
+
+/*!
+ * Pointwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec3f_pwquotxy(const vec3f * a, float bx, float by, float bz, vec3f * c)
+{
+  c->x = a->x / bx;
+  c->y = a->y / by;
+  c->z = a->z / bz;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Pointwise Multiply and Sum.
+ * d = b * c + a;
+ */
+static inline void
+vec3f_pwprod_sum(const vec3f * a, const vec3f * b, const vec3f * c, vec3f * d)
+{
+  d->x = b->x * c->x + a->x;
+  d->y = b->y * c->y + a->y;
+  d->z = b->z * c->z + a->z;
+}
+
+/*!
+ * Pointwise Scalar Multiply (Scale) and Sum (Shift).
+ * d = b * c + a;
+ */
+static inline void
+vec3f_pwprods_sum(const vec3f * a, const vec3f * b, float c, vec3f * d)
+{
+  d->x = b->x * c + a->x;
+  d->y = b->y * c + a->y;
+  d->z = b->z * c + a->z;
+}
+
+/*!
+ * Scalar (Dot) Product between \p a and \p b.
+ */
+static inline float
+vec3f_dot(const vec3f * a, const vec3f * b)
+{
+  return (a->x * b->x + a->y * b->y + a->z * b->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the Distance between \p a and \p b in 1-norm.
+ */
+static inline float
+vec3f_dist1(const vec3f * a, const vec3f * b)
+{
+  return (ABS(a->x - b->x) +
+	  ABS(a->y - b->y) +
+	  ABS(a->z - b->z));
+}
+
+/*!
+ * Calculate the Euclidean Distance between \p a and \p b.
+ */
+static inline float
+vec3f_dist2(const vec3f * a, const vec3f * b)
+{
+  return float_hypot3d(a->x - b->x,
+		     a->y - b->y,
+		     a->z - b->z);
+}
+
+/*!
+ * Calculate the Dimension Distance Maximum between \p a and \p b.
+ */
+static inline float
+vec3f_dimdistmax(const vec3f * a, const vec3f * b)
+{
+  return (float_max3(ABS(a->x - b->x),
+		   ABS(a->y - b->y),
+		   ABS(a->z - b->z)));
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in \p n-Norm.
+ */
+static inline float
+vec3f_distn(const vec3f * a, const vec3f * b, int n)
+{
+  if (n == 1) {
+    return vec3f_dist1(a, b);
+  } else if (n == 2) {
+    return vec3f_dist2(a, b);
+  } else {
+    return 0;
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the 1-Norm of \p a.
+ */
+static inline float
+vec3f_norm1(const vec3f * a)
+{
+  return ABS(a->x) + ABS(a->y);
+}
+
+/*!
+ * Calculate the 2-Norm of \p a.
+ */
+static inline float
+vec3f_norm2(const vec3f * a)
+{
+  return float_hypot2d(a->x, a->y);
+}
+
+/*!
+ * Calculate the \p n-Norm of \p a.
+ */
+static inline float
+vec3f_normn(const vec3f * a, int n)
+{
+  if (n == 1) {
+    return vec3f_norm1(a);
+  } else if (n == 2) {
+    return vec3f_norm2(a);
+  } else {
+    PWARN("cannot handle norm %d\n", n);
+    return 0;
+  }
+}
+
+/*!
+ * Normalize \p a with the \p n-Norm.
+ */
+static inline void
+vec3f_normalize(vec3f * a, int n)
+{
+  float norm = vec3f_normn(a, n);
+  a->x /= norm;
+  a->y /= norm;
+  a->z /= norm;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline float
+vec3f_at(const vec3f * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec3f_out_str(FILE * stream, const vec3f * a)
+{
+  fprintf(stream, "[%f,%f,%f]", a->x, a->y, a->z);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg and
+ * put result in \p curr.
+ */
+static inline void
+vec3f_linterpol(const vec3f * src, float prg, const vec3f * dst, vec3f * curr)
+{
+  curr->x = src->x + (dst->x - src->x) * prg;
+  curr->y = src->y + (dst->y - src->y) * prg;
+  curr->z = src->z + (dst->z - src->z) * prg;
+}
+
+/*!
+ * Linearly Interpolate Array from \p src[i] to \p dst[i] at common progress
+   \p prg and put result in \p curr[i].
+ */
+void
+vec3farray_linterpol(const vec3f * src, float prg, const vec3f * dst,
+		     vec3f * curr, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate \p min, \p max and \p span along X dimension.
+ */
+void
+vec3farray_rdSpanX(const vec3f * a, size_t n,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate \p min, \p max and \p span along Y dimension.
+ */
+void
+vec3farray_rdSpanY(const vec3f * a, size_t n,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate \p min, \p max and \p span along Z dimension.
+ */
+void
+vec3farray_rdSpanZ(const vec3f * a, size_t n,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate Center/Mean/Average of \p a of length \p n.
+ */
+void
+vec3farray_rdCen(const vec3f * a, size_t n, vec3f * cen);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+vec3f_fprint(FILE * stream, const vec3f * a)
+{
+  fprintf(stream, "[%f,%f,%f]", a->x, a->y, a->z);
+}
+
+static inline void
+vec3f_print(const vec3f * a)
+{
+  vec3f_fprint(stdout, a);
+}
+
+void
+vec3f_fprintfv(FILE * stream, const vec3f * a, size_t n);
+
+void
+vec3farray_fprint(FILE * stream, const vec3f * in, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec3f(const vec3f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_f32be(chv, &a->x);
+  ret += chv_enc_f32be(chv, &a->y);
+  ret += chv_enc_f32be(chv, &a->z);
+  return ret;
+}
+
+static inline int
+chv_dec_vec3f(vec3f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_f32be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->z)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+int
+chv_enc_vec3farray(const vec3f * a, uint32_t vtxN, chv_t * chv);
+
+int
+chv_dec_vec3farray(vec3f * a, uint32_t vtxN, chv_t * chv);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>every</em> of the vector a's components [x, y, z] is "Finite".
+ * \return 1 if true, 0 otherwise.
+ */
+#if 0                           /* TODO: Fix for C++! */
+static inline int
+vec3f_isfinite(const vec3f * a)
+{
+  return (isfinite(a->x) &&
+	  isfinite(a->y) &&
+	  isfinite(a->z));
+}
+#endif
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the vector \p a's components [x, y, z] is
+ * "Not a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+vec3f_is_NaN(const vec3f * a)
+{
+  return (isnan(a->x) ||
+	  isnan(a->y));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Swap the contents of \p a and \p b.
+ */
+static inline void vec3f_swap(vec3f * a, vec3f * b)
+{
+  vec3f tmp;
+  tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Shuffle all \p n elements contained in the vec3f-array \p a.
+ */
+void
+vec3farray_shuffle(vec3f * a, size_t n);
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

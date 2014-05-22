@@ -1,0 +1,372 @@
+/*!
+ * \file cir2f.hpp
+ * \brief Two-dimensional Circle of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "box2f.hpp"
+#include "../linterpol.h"
+#include "../mean.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*! Two-Dimensional Circle of floats. */
+class cir2f
+{
+public:
+    const char * concept_name() const { return "2-Dimensional Circle"; } ///< Get Knowledge \em Concept Name.
+public:
+    vec2f c;			/**< Center. */
+    float r;			/**< Radius. */
+};
+
+/*!
+ * Set \p a to the circle with center [\p cx, \p cy] and radius \p r.
+ */
+inline void
+cir2f_set(cir2f * a, float cx, float cy, float r)
+{
+    a->c.x = cx;
+    a->c.y = cy;
+    a->r = r;
+}
+
+/*!
+ * Allocate and Initialize a circle with center [\p cx, \p cy] and radius \p r.
+ */
+inline cir2f *
+cir2f_new(float cx, float cy, float r)
+{
+    cir2f * a = (cir2f*)malloc(sizeof(cir2f));
+    cir2f_set(a, cx, cy, r);
+    return a;
+}
+
+/*!
+ * Set \p a's center to the point \p b and radius to zero.
+ */
+inline void
+cir2f_set_Point(cir2f * a, const vec2f * b)
+{
+    a->c.x = b->x;
+    a->c.y = b->y;
+    a->r = 0;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+inline void
+cir2f_set_copy(cir2f * a, const cir2f * b)
+{
+    *a = *b;
+}
+
+/*!
+ * Read circle Center into \p cen.
+ */
+inline void
+cir2f_rdCen(const cir2f * cir, vec2f * cen)
+{
+    cen->x = cir->c.x;
+    cen->y = cir->c.y;
+}
+
+/*!
+ * Read Inner Circle of \p a scaled the factor \p f and put result in \p b.
+ */
+inline void
+box2f_rdICir(const box2f * a, float f, cir2f * b)
+{
+    box2f_rdCen(a, &b->c);
+    vec2f dim; box2f_rdDim(a, &dim);
+    b->r = MIN2(dim.x, dim.y) / 2.0f * f;
+}
+
+/*!
+ * Get circle Center along dimension \p i.
+ */
+inline float
+cir2f_getCeni(const cir2f * cir, int i)
+{
+    if (i == 0) {
+        return cir->c.x;
+    } else {
+        return cir->c.y;
+    }
+}
+
+/*!
+ * Get circle Area.
+ */
+inline float
+cir2f_getArea(const cir2f * cir)
+{
+    return M_PI * SQR(cir->r);
+}
+
+/*!
+ * Read circle Bounding Box.
+ */
+inline void
+cir2f_rdBnd_box2f(const cir2f * cir, box2f * box)
+{
+    box2f_setSqr(box, &cir->c, cir->r);
+}
+
+/*!
+ * Get Circle Inner Box scaled the factor \p f.
+ */
+inline box2f
+cir2f_getIBox(const cir2f * cir, float f)
+{
+    box2f box;
+    const float irad = cir->r * f * M_SQRT2_2; /* inner = radius * f * 1/sqrt(2) */
+    box2f_setSqr(&box, &cir->c, irad);
+    return box;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+inline int
+cir2f_eq(const cir2f * a, const cir2f * b)
+{
+    return (vec2f_eq(&a->c, &b->c) &&
+            a->r == b->r);
+}
+
+/*!
+ * Extend the radius of \p a the shift \p s.
+ */
+inline void
+cir2f_extend(cir2f * a, const float s)
+{
+    a->r += s;
+}
+
+/*!
+ * Translate \p a the shift \p s and put the result in \p b.
+ */
+inline void
+cir2f_move(const cir2f * a, const vec2f * s, cir2f * b)
+{
+    vec2f_sum(&a->c, s, &b->c);
+}
+
+/*!
+ * Horizontally Translate \p a the shift sx and put the result in \p b.
+ */
+inline void
+cir2f_htransl(const cir2f * a, float sx, cir2f * b)
+{
+    b->c.x = a->c.x + sx;
+}
+
+/*!
+ * Vertically Translate \p a the shift sy and put the result in \p b.
+ */
+inline void
+cir2f_vtransl(const cir2f * a, float sy, cir2f * b)
+{
+    b->c.y = a->c.y + sy;
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+inline void
+cir2f_cscale(const cir2f * a, float f, cir2f * b)
+{
+    b->r = a->r * f;
+}
+
+/*!
+ * Resize \p cir using the user (mouse) drag from \p mpos the shift \p mshift.
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+inline int
+cir2f_shiftCtrlP(cir2f * cir,
+                 const vec2f * mpos, const vec2f * mshift,
+                 const vec2f * mindim, const uint8_t * ctrlPM)
+{
+    int ret = 1;
+    if (ctrlPM) {
+        if (GET_BIT(*ctrlPM, 0)) {
+            if (mshift) { vec2f_add(&cir->c, mshift); } /* center */
+        }
+        if (GET_BIT(*ctrlPM, 1)) {
+            vec2f pdir; vec2f_diff(&cir->c, mpos, &pdir);
+            if (mshift) { cir->r -= vec2f_dot(&pdir, mshift) / vec2f_norm2(&pdir); }
+        }
+    }
+    return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate sub-cir when \p ba is viewed relative to \p a and put result in \p b.
+ *
+ * The inverse operation of \c cir2f_rdRel().
+ */
+inline void
+cir2f_rdSub(const box2f * a, const cir2f * ba, cir2f * b)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    vec2f_set(&b->c, a->l.x + ad.x * ba->c.x, a->l.y + ad.y * ba->c.y);
+    b->r = ba->r * float_mean2(ad.x, ad.y);
+    if (ad.x != ad.y) {
+        PTODO("ad.x != ad.y => may result in an ellipse\n");
+    }
+}
+
+/*!
+ * The inverse operation of \c cir2f_rdSub().
+ */
+inline void
+cir2f_rdRel(const box2f * a, const cir2f * b, cir2f * ba)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    vec2f_set(&ba->c, (b->c.x - a->l.x) / ad.x, (b->c.y - a->l.y) / ad.y);
+    ba->r = b->r / float_mean2(ad.x, ad.y);
+    if (ad.x != ad.y) {
+        PTODO("ad.x != ad.y => may result in an ellipse\n");
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline int
+cir2f_beside_point(const cir2f * a, const vec2f * b)
+{
+    return (vec2f_dist2(&a->c, b) >= a->r);
+}
+
+inline int
+cir2f_covers_point(const cir2f * a, const vec2f * b)
+{
+    return ! cir2f_beside_point(a, b);
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+inline int
+cir2f_beside_box(const cir2f * a, const box2f * b)
+{
+    PTEST("Function not verified\n");
+    const vec2f vtx[4] = { { b->l.x, b->l.y },
+                           { b->u.x, b->l.y },
+                           { b->u.x, b->u.y },
+                           { b->l.x, b->u.y } };
+    /* circle beside all box-corners => lies beside the whole box */
+    return (!cir2f_covers_point(a, &vtx[0]) &&
+            !cir2f_covers_point(a, &vtx[1]) &&
+            !cir2f_covers_point(a, &vtx[2]) &&
+            !cir2f_covers_point(a, &vtx[3]));
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+inline int
+cir2f_overlap_box2f(const cir2f * a, const box2f * b)
+{
+    PTEST("Function not verified\n");
+    return !cir2f_beside_box(a, b);
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+inline int
+cir2f_covers_box(const cir2f * a, const box2f * b)
+{
+    PTEST("Function not verified\n");
+    const vec2f vtx[4] = { { b->l.x, b->l.y },
+                           { b->u.x, b->l.y },
+                           { b->u.x, b->u.y },
+                           { b->l.x, b->u.y } };
+    /* circle covers all box-corners => covers the whole box */
+    return (cir2f_covers_point(a, &vtx[0]) &&
+            cir2f_covers_point(a, &vtx[1]) &&
+            cir2f_covers_point(a, &vtx[2]) &&
+            cir2f_covers_point(a, &vtx[3]));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg with
+ * transition \p trans and put result in \p curr.
+ */
+inline void
+cir2f_linterpol(const cir2f * src, float prg, const cir2f *dst, cir2f * curr)
+{
+    PTEST("\n");
+    vec2f_linterpol(&src->c, prg, &dst->c, &curr->c);
+    curr->r = float_linterpol(src->r, prg, dst->r);
+}
+
+/*!
+ * Fit circle cir precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+inline int
+cir2f_ifit_box2f(cir2f * cir, const box2f * ext)
+{
+    int ret = 1;
+    vec2f cen, dim; box2f_rdCenDim(ext, &cen, &dim);
+    const float min_dim = float_min2(dim.x, dim.y);
+    cir2f_set(cir, cen.x, cen.y, min_dim/2); /* use inner square */
+    return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline void
+cir2f_fprint(FILE * stream, const cir2f * a)
+{
+    if (a) {
+        fprintf(stream, "[[%f,%f],%f]",
+                a->c.x, a->c.y, a->r);
+    } else {
+        fprintf(stream, "(nil)");
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline int
+chv_enc_cir2f(const cir2f * a, chv_t * chv)
+{
+    int ret = 0;
+    ret += chv_enc_vec2f(&a->c, chv);
+    ret += chv_enc_f32be(chv, &a->r);
+    return ret;
+}
+
+inline int
+chv_dec_cir2f(cir2f * a, chv_t * chv)
+{
+    int cnt = 0, ret = 0;
+    if ((ret = chv_dec_vec2f(&a->c, chv)) >= 0) cnt += ret; else return ret;
+    if ((ret = chv_dec_f32be(chv, &a->r)) >= 0) cnt += ret; else return ret;
+    return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

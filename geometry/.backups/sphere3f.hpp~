@@ -1,0 +1,494 @@
+/*!
+ * \file sphere3f.hpp
+ * \brief Three-Dimensional Sphere of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "box2f.hpp"
+#include "box3f.h"
+#include "../linterpol.h"
+#include "bitwise.h"
+#include "mean.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional sphere of floats.
+ */
+typedef struct
+{
+  vec3f c;			/**< Center. */
+  float r;			/**< Radius. */
+} sphere3f;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set \p a to the sphere with center [\p cx, \p cy] and radius \p r.
+ */
+static inline void
+sphere3f_set(sphere3f * a, float cx, float cy, float cz, float r)
+{
+  a->c.x = cx;
+  a->c.y = cy;
+  a->c.z = cz;
+  a->r = r;
+}
+
+/*!
+ * Allocate and Initialize a sphere with center [\p cx, \p cy] and radius \p r.
+ */
+static inline sphere3f *
+sphere3f_new(float cx, float cy, float cz, float r)
+{
+  sphere3f * a = (sphere3f*)malloc(sizeof(sphere3f));
+  sphere3f_set(a, cx, cy, cz, r);
+  return a;
+}
+
+/*!
+ * Set \p a's center to the point \p b and radius to zero.
+ */
+static inline void
+sphere3f_set_Point(sphere3f * a, const vec3f * b)
+{
+  a->c.x = b->x;
+  a->c.y = b->y;
+  a->c.z = b->z;
+  a->r = 0;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+sphere3f_set_copy(sphere3f * a, const sphere3f * b)
+{
+  *a = *b;
+}
+
+/*!
+ * Read Sphere \p sphere Center into \p cen.
+ */
+static inline void
+sphere3f_rdCen(const sphere3f * sphere, vec3f * cen)
+{
+  cen->x = sphere->c.x;
+  cen->y = sphere->c.y;
+  cen->z = sphere->c.z;
+}
+
+/*!
+ * Read Sphere \p sphere Center into \p cen.
+ */
+static inline void
+sphere3f_rdCen2f(const sphere3f * sphere, vec2f * cen)
+{
+  cen->x = sphere->c.x;
+  cen->y = sphere->c.y;
+}
+
+/*!
+ * Read Inner Sphere of \p a scaled the factor \p f and put result in \p b.
+ */
+static inline void
+box3f_rdISphere(const box3f * a, float f, sphere3f * b)
+{
+  box3f_rdCen(a, &b->c);
+  vec3f dim; box3f_rdDim(a, &dim);
+  b->r = float_min3(dim.x, dim.y, dim.z) / 2 * f;
+}
+
+/*!
+ * Get Sphere \p sphere Center along dimension \p i.
+ */
+static inline float
+sphere3f_getCeni(const sphere3f * sphere, int i)
+{
+  if (i == 0) {
+    return sphere->c.x;
+  } else {
+    return sphere->c.y;
+  }
+}
+
+/*!
+ * Get Sphere \p sphere Area.
+ */
+static inline float
+sphere3f_getArea(const sphere3f * sphere)
+{
+  return M_PI * SQR(sphere->r);
+}
+
+/*!
+ * Read Sphere \p sphere Bounding Box into \p box.
+ */
+static inline void
+sphere3f_rdBnd_box2f(const sphere3f * sphere, box3f * box)
+{
+  box3f_setSqr(box, &sphere->c, sphere->r);
+}
+
+/*!
+ * Get Sphere \p sphere Inner Box into \p box.
+ */
+static inline box3f
+sphere3f_getIBox(const sphere3f * sphere)
+{
+  box3f box;
+  const float irad = sphere->r * M_SQRT2_2; /* inner = radius * 1/sqrt(2) */
+  box3f_setSqr(&box, &sphere->c, irad);
+  return box;
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+sphere3f_eq(const sphere3f * a, const sphere3f * b)
+{
+  return (vec3f_eq(&a->c, &b->c) &&
+	  a->r == b->r);
+}
+
+/*!
+ * Extend the radius of \p a the shift \p s.
+ */
+static inline void
+sphere3f_extend(sphere3f * a, const float s)
+{
+  a->r += s;
+}
+
+/*!
+ * Translate \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+sphere3f_move(const sphere3f * a, const vec3f * s, sphere3f * b)
+{
+  vec3f_sum(&a->c, s, &b->c);
+}
+
+/*!
+ * Horizontally Translate \p a the shift sx and put the result in \p b.
+ */
+static inline void
+sphere3f_htransl(const sphere3f * a, float sx, sphere3f * b)
+{
+  b->c.x = a->c.x + sx;
+}
+
+/*!
+ * Vertically Translate \p a the shift sy and put the result in \p b.
+ */
+static inline void
+sphere3f_vtransl(const sphere3f * a, float sy, sphere3f * b)
+{
+  b->c.y = a->c.y + sy;
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+sphere3f_cscale(const sphere3f * a, float f, sphere3f * b)
+{
+  b->r = a->r * f;
+}
+
+/*!
+ * Resize \p sphere using the user (mouse) drag from \p mpos the shift
+ * \p mshift.
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+sphere3f_shiftCtrlP(sphere3f * sphere,
+		    const vec3f * mpos, const vec3f * mshift,
+		    const vec3f * mindim, const uint8_t * ctrlPM)
+{
+  int ret = 1;
+  if (ctrlPM) {
+    if (GET_BIT(*ctrlPM, 0)) {
+      if (mshift) { vec3f_add(&sphere->c, mshift); } /* center */
+    }
+    if (GET_BIT(*ctrlPM, 1)) {
+      vec3f pdir; vec3f_diff(&sphere->c, mpos, &pdir);
+      if (mshift) { sphere->r -= vec3f_dot(&pdir, mshift) / vec3f_norm2(&pdir); }
+    }
+  }
+  return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate sub-sphere when \p ba is viewed relative to \p a and put
+ * result in \p b.
+ *
+ * The inverse operation of \c sphere3f_rdRel().
+ */
+static inline void
+sphere3f_rdSub(const box3f * a, const sphere3f * ba, sphere3f * b)
+{
+  vec3f ad; box3f_rdDim(a, &ad);
+  vec3f_set(&b->c,
+	    a->l.x + ad.x * ba->c.x,
+	    a->l.y + ad.y * ba->c.y,
+	    a->l.z + ad.z * ba->c.z);
+  b->r = ba->r * float_mean3(ad.x, ad.y, ad.z);
+  if (ad.x != ad.y ||
+      ad.y != ad.z ||
+      ad.z != ad.x) {
+    PTODO("ad's components not all equal => may result in an ellipse\n");
+  }
+}
+
+/*!
+ * The inverse operation of \c sphere3f_rdSub().
+ */
+static inline void
+sphere3f_rdRel(const box3f * a, const sphere3f * b, sphere3f * ba)
+{
+  vec3f ad; box3f_rdDim(a, &ad);
+  vec3f_set(&ba->c,
+	    (b->c.x - a->l.x) / ad.x,
+	    (b->c.y - a->l.y) / ad.y,
+	    (b->c.z - a->l.z) / ad.z);
+  ba->r = b->r / float_mean3(ad.x, ad.y, ad.z);
+  if (ad.x != ad.y ||
+      ad.y != ad.z ||
+      ad.z != ad.x) {
+    PTODO("ad's components not all equal => may result in an ellipse\n");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate sub-sphere when \p ba is viewed relative to \p a and put result in \p b.
+ *
+ * The inverse operation of \c sphere3f_rdRel_box2f().
+ */
+static inline void
+sphere3f_rdSub_box2f(const box2f * a, const sphere3f * ba, sphere3f * b)
+{
+  vec2f ad; box2f_rdDim(a, &ad);
+  vec3f_set(&b->c,
+	    a->l.x + ad.x * ba->c.x,
+	    a->l.y + ad.y * ba->c.y,
+	    ba->c.z);		/* z is ignored */
+  b->r = ba->r * float_mean2(ad.x, ad.y);
+  if (ad.x != ad.y) {
+    PTODO("ad's components not all equal => may result in an ellipse\n");
+  }
+}
+
+/*!
+ * The inverse operation of \c sphere3f_rdSub_box2f().
+ */
+static inline void
+sphere3f_rdRel_box2f(const box2f * a, const sphere3f * b, sphere3f * ba)
+{
+  vec2f ad; box2f_rdDim(a, &ad);
+  vec3f_set(&ba->c,
+	    (b->c.x - a->l.x) / ad.x,
+	    (b->c.y - a->l.y) / ad.y,
+	    b->c.z);		/* z is ignored */
+  ba->r = b->r / float_mean2(ad.x, ad.y);
+  if (ad.x != ad.y) {
+    PTODO("ad's components not all equal => may result in an ellipse\n");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+sphere3f_beside_vec3f(const sphere3f * a, const vec3f * b)
+{
+  return (vec3f_dist2(&a->c, b) >= a->r);
+}
+
+static inline int
+sphere3f_covers_vec3f(const sphere3f * a, const vec3f * b)
+{
+  return ! sphere3f_beside_vec3f(a, b);
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+static inline int
+sphere3f_beside_box3f(const sphere3f * a, const box3f * b)
+{
+  PTEST("Function not verified\n");
+  const vec3f vtx[9] = { { b->l.x, b->l.y },
+			 { b->l.x, b->u.y },
+			 { b->l.x, b->u.z },
+			 { b->l.y, b->l.y },
+			 { b->l.y, b->u.y },
+			 { b->l.y, b->u.z },
+			 { b->l.z, b->l.y },
+			 { b->l.z, b->u.y },
+			 { b->l.z, b->u.z } };
+  /* sphere beside all box-corners => lies beside the whole box */
+  return (!sphere3f_covers_vec3f(a, &vtx[0]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[1]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[2]) &&
+
+	  !sphere3f_covers_vec3f(a, &vtx[3]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[4]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[5]) &&
+
+	  !sphere3f_covers_vec3f(a, &vtx[6]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[7]) &&
+	  !sphere3f_covers_vec3f(a, &vtx[8])
+	  );
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+static inline int
+sphere3f_overlap_box3f(const sphere3f * a, const box3f * b)
+{
+  PTEST("Function not verified\n");
+  return !sphere3f_beside_box3f(a, b);
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+static inline int
+sphere3f_overlap_box2f(const sphere3f * a, const box2f * b)
+{
+  box3f b3; box3f_set_box2f(&b3, b); /* z is ignored */
+  return sphere3f_overlap_box3f(a, &b3);
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+static inline int
+sphere3f_covers_box3f(const sphere3f * a, const box3f * b)
+{
+  PTEST("Function not verified\n");
+  const vec3f vtx[9] = { { b->l.x, b->l.y },
+			 { b->l.x, b->u.y },
+			 { b->l.x, b->u.z },
+			 { b->l.y, b->l.y },
+			 { b->l.y, b->u.y },
+			 { b->l.y, b->u.z },
+			 { b->l.z, b->l.y },
+			 { b->l.z, b->u.y },
+			 { b->l.z, b->u.z } };
+  /* sphere covers all box-corners => covers the whole box */
+  return (sphere3f_covers_vec3f(a, &vtx[0]) &&
+	  sphere3f_covers_vec3f(a, &vtx[1]) &&
+	  sphere3f_covers_vec3f(a, &vtx[2]) &&
+	  sphere3f_covers_vec3f(a, &vtx[3]) &&
+	  sphere3f_covers_vec3f(a, &vtx[4]) &&
+	  sphere3f_covers_vec3f(a, &vtx[5]) &&
+	  sphere3f_covers_vec3f(a, &vtx[6]) &&
+	  sphere3f_covers_vec3f(a, &vtx[7]) &&
+	  sphere3f_covers_vec3f(a, &vtx[8]));
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+static inline int
+sphere3f_covers_box2f(const sphere3f * a, const box2f * b)
+{
+  box3f b3;
+  box3f_set(&b3,		/* z is ignored */
+	    b->l.x, b->l.y, 0.0f,
+	    b->u.x, b->u.y, 0.0f);
+  return sphere3f_covers_box3f(a, &b3);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg with transition \p trans
+ * and put result in \p curr.
+ */
+static inline void
+sphere3f_linterpol(const sphere3f * src, float prg, const sphere3f *dst, sphere3f * curr)
+{
+  PTEST("\n");
+  vec3f_linterpol(&src->c, prg, &dst->c, &curr->c);
+  curr->r = float_linterpol(src->r, prg, dst->r);
+}
+
+/*!
+ * Fit sphere sphere precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+sphere3f_ifit_box2f(sphere3f * sphere, const box3f * ext)
+{
+  int ret = 1;
+  vec3f cen, dim; box3f_rdCenDim(ext, &cen, &dim);
+  const float min_dim = float_min3(dim.x, dim.y, dim.z);
+  sphere3f_set(sphere, cen.x, cen.y, cen.z, min_dim/2); /* use inner square */
+  return ret;
+}
+
+/*!
+ * Fit sphere sphere precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+sphere3f_ifitBox2f(sphere3f * sphere, const box2f * ext)
+{
+  int ret = 1;
+  vec2f cen, dim; box2f_rdCenDim(ext, &cen, &dim);
+  const float min_dim = float_min2(dim.x, dim.y);
+  sphere3f_set(sphere, cen.x, cen.y, 0, min_dim/2); /* use inner square */
+  return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+sphere3f_fprint(FILE * stream, const sphere3f * a)
+{
+  if (a) {
+    fprintf(stream, "[[%f,%f],%f]",
+	    a->c.x, a->c.y, a->r);
+  } else {
+    fprintf(stream, "(nil)");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_sphere3f(const sphere3f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec3f(&a->c, chv);
+  ret += chv_enc_f32be(chv, &a->r);
+  return ret;
+}
+
+static inline int
+chv_dec_sphere3f(sphere3f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec3f(&a->c, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->r)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+#ifdef __cplusplus
+}
+#endif

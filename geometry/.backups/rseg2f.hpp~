@@ -1,0 +1,358 @@
+/*!
+ * \file rseg2f.hpp
+ * \brief Two-dimensional Circular Ring-Segment.
+ * \author Copyright (C) 2007 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "vec2f.h"
+#include "box2f.hpp"
+#include "cir2f.hpp"
+#include "cring2f.h"
+
+#include "../linterpol.h"
+#include "../atan2_adjusted.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*! Two-dimensional Circular Ring-Segment of floats. */
+class rseg2f
+{
+public:
+    const char * concept_name() const { return "2-Dimensional Ring Segment"; } ///< Get Knowledge \em Concept Name.
+public:
+    cring2f r;			/**< Circular Ring. */
+    float   p;			/**< Begin Angle */
+    float   q;			/**< End Angle */
+};
+
+/*! Set \p a's begin angle to \p p and end angle to \p q. */
+static inline void
+rseg2f_setAA(rseg2f * a, float p, float q)
+{
+    a->p = p;
+    a->q = q;
+}
+
+/*! Set \p a to the Circular Ring-Segment with center [\p cx, \p cy], Inner
+ *  Radius \p and Outer Radius \p ro. */
+static inline void
+rseg2f_set(rseg2f * a, float cx, float cy, float ri, float ro,
+           float p, float q)
+{
+    cring2f_set(&a->r, cx, cy, ri, ro);
+    rseg2f_setAA(a, p, q);
+}
+
+/*! Set \p a to the Circular Ring-Segment with center \p cen, Inner Radius \p
+ *  and Outer Radius \p ro. */
+static inline void
+rseg2f_setCrr(rseg2f * a, const vec2f * cen, float ri, float ro)
+{
+    cring2f_setCrr(&a->r, cen, ri, ro);
+}
+
+/*! Set \p a to the Circular Ring-Segment with center \p cen,
+ * Inner Radius \p and Outer Radius \p ro from angle \p p to \p q.
+ */
+static inline void
+rseg2f_setCrraa(rseg2f * a, const vec2f * cen, float ri, float ro,
+                float p, float q)
+{
+    cring2f_setCrr(&a->r, cen, ri, ro);
+    rseg2f_setAA(a, p, q);
+}
+
+/*! Set \p a to \p b.
+ */
+static inline void
+rseg2f_set_copy(rseg2f * a, const rseg2f * b)
+{
+    *a = *b;
+}
+
+/*! Allocate and Initialize a Circular Ring-Segment with center [\p cx, \p cy]
+ * and Radius \p r.
+ */
+static inline rseg2f *
+rseg2f_new(float cx, float cy, float ri, float ro,
+           float p, float q)
+{
+    rseg2f * a = (rseg2f*)malloc(sizeof(rseg2f));
+    rseg2f_set(a, cx, cy, ri, ro, p, q);
+    return a;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Get Inner Begin of Circular Ring Segment \p rseg. */
+static inline void
+rseg2f_getip(const rseg2f * rseg, vec2f * op)
+{
+    vec2f udir; vec2f_cosinAt(&udir, rseg->p); /* unit direction to p */
+    vec2f_pwprods_sum(&rseg->r.c, &udir, rseg->r.ri, op);
+}
+
+/*! Get Inner End of Circular Ring Segment \p rseg. */
+static inline void
+rseg2f_getiq(const rseg2f * rseg, vec2f * oq)
+{
+    vec2f udir; vec2f_cosinAt(&udir, rseg->q); /* unit direction to q */
+    vec2f_pwprods_sum(&rseg->r.c, &udir, rseg->r.ri, oq);
+}
+
+/*! Get Outer Begin of Circular Ring Segment \p rseg. */
+static inline void
+rseg2f_getop(const rseg2f * rseg, vec2f * op)
+{
+    vec2f udir; vec2f_cosinAt(&udir, rseg->p); /* unit direction to p */
+    vec2f_pwprods_sum(&rseg->r.c, &udir, rseg->r.ro, op);
+}
+
+/*!
+ * Get Outer End of Circular Ring Segment \p rseg.
+ */
+static inline void
+rseg2f_getoq(const rseg2f * rseg, vec2f * oq)
+{
+    vec2f udir; vec2f_cosinAt(&udir, rseg->q); /* unit direction to q */
+    vec2f_pwprods_sum(&rseg->r.c, &udir, rseg->r.ro, oq);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Translate \p a the shift \p s and put the result in \p b. */
+static inline void
+rseg2f_move(const rseg2f * a, const vec2f * s, rseg2f * b)
+{
+    cring2f_move(&a->r, s, &b->r);
+}
+
+/*! Resize \p rseg using the user (mouse) drag from \p mpos the shift
+ * \p mshift.
+ *
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+rseg2f_shiftCtrlP(rseg2f * rseg,
+                  const vec2f * mpos, const vec2f * mshift,
+                  const vec2f * mindim, const uint8_t * ctrlPM)
+{
+    return cring2f_shiftCtrlP(&rseg->r,
+                              mpos, mshift,
+                              mindim, ctrlPM);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Calculate Sub-Ring-Segment when \p ba is viewed relative to \p a and put
+ * result in \p b.
+ *
+ * The inverse operation of \c rseg2f_rdRel().
+ */
+static inline void
+rseg2f_rdSub(const box2f * a, const rseg2f * ba, rseg2f * b)
+{
+    cring2f_rdSub(a, &ba->r, &b->r);
+    rseg2f_setAA(b, ba->p, ba->q); /* just copy segment angles */
+}
+
+/*! The inverse operation of \c rseg2f_rdSub(). */
+static inline void
+rseg2f_rdRel(const box2f * a, const rseg2f * b, rseg2f * ba)
+{
+    cring2f_rdRel(a, &b->r, &ba->r);
+    rseg2f_setAA(ba, b->p, b->q); /* just copy segment angles */
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+rseg2f_beside_point(const rseg2f * a, const vec2f * b)
+{
+    int ret = 0;
+    /* radial clipping first because dist2() is faster than atan2() */
+    if (cring2f_beside_point(&a->r, b)) {
+        ret = 1;			/* radial discardal/clipping */
+    } else {
+        vec2f diff; vec2f_diff(b, &a->r.c, &diff); /* vector from center to point */
+        float ang = atan2f_0to2PI(diff.y, diff.x);
+        if (ang <  a->p ||
+            ang >= a->q) {		/* b beside angular range [p, q] */
+            ret = 1;			/* angular discardal/clipping */
+        } else {
+            /* PTEST("Angle %f inside [%f %f]\n", ang, a->p, a->q); */
+        }
+    }
+    return ret;
+}
+
+static inline int
+rseg2f_covers_point(const rseg2f * a, const vec2f * b)
+{
+    return ! rseg2f_beside_point(a, b);
+}
+
+/*! Return non-zero if \p a lies beside \p b. */
+static inline int
+rseg2f_beside_box(const rseg2f * a, const box2f * b)
+{
+    PTEST("Function not verified\n");
+    const vec2f vtx[4] = { { b->l.x, b->l.y },
+                           { b->u.x, b->l.y },
+                           { b->u.x, b->u.y },
+                           { b->l.x, b->u.y } };
+    /* circle beside all box-corners => lies beside the whole box */
+    return (!rseg2f_covers_point(a, &vtx[0]) &&
+            !rseg2f_covers_point(a, &vtx[1]) &&
+            !rseg2f_covers_point(a, &vtx[2]) &&
+            !rseg2f_covers_point(a, &vtx[3]));
+}
+
+/*! Return non-zero if \p a overlaps \p b. */
+static inline int
+rseg2f_overlap_box2f(const rseg2f * a, const box2f * b)
+{
+    PTODO("Function just partially correct\n");
+    return !rseg2f_beside_box(a, b);
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+static inline int
+rseg2f_covers_box(const rseg2f * a, const box2f * b)
+{
+    PTODO("Function just partially correct\n");
+    const vec2f vtx[4] = { { b->l.x, b->l.y },
+                           { b->u.x, b->l.y },
+                           { b->u.x, b->u.y },
+                           { b->l.x, b->u.y } };
+    return (rseg2f_covers_point(a, &vtx[0]) &&
+            rseg2f_covers_point(a, &vtx[1]) &&
+            rseg2f_covers_point(a, &vtx[2]) &&
+            rseg2f_covers_point(a, &vtx[3]));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Read \p rseg Bounding Box into \p box. */
+void
+rseg2f_rdBnd_box2f(const rseg2f * rseg, box2f * box);
+
+/*! Get Circular Ring-Segment \p rseg Inner Box into \p box. */
+static inline box2f
+rseg2f_getIBox(const rseg2f * rseg)
+{
+    return cring2f_getIBox(&rseg->r);
+}
+
+/*! Read \p rseg Inner Circle into \p cir. */
+static inline void
+rseg2f_rdICir(const rseg2f * rseg, cir2f * cir)
+{
+    const float aM = float_mean2(rseg->p, rseg->p); /* angular mean */
+    const float rM = float_mean2(rseg->r.ri, rseg->r.ro); /* radial mean */
+
+    vec2f_set(&cir->c, rM * cosf(aM), rM * sinf(aM));
+
+    vec2f pE; vec2f_set(&pE, rM * cosf(rseg->p), rM * sinf(rseg->p));
+    vec2f qE; vec2f_set(&qE, rM * cosf(rseg->p), rM * sinf(rseg->p));
+
+    cir->r = (rseg->r.ro - rseg->r.ro) * 0.5f;
+
+    bool ang_flag = 1;		/* set radius side angu */
+    if (ang_flag) {
+        const float pD = vec2f_dist2(&pE, &cir->c);
+        const float qD = vec2f_dist2(&qE, &cir->c);
+        cir->r = float_min3(cir->r, pD, qD); /* limit along angular dimension */
+    }
+
+}
+
+/*! Fit \p rseg precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+rseg2f_ifit_box2f(rseg2f * rseg, const box2f * ext)
+{
+    int ret = 1;
+    vec2f cen, dim; box2f_rdCenDim(ext, &cen, &dim);
+    const float min_dim = float_min2(dim.x, dim.y);
+    /* inner square and keep angles */
+    rseg2f_setCrr(rseg, &cen, min_dim/4, min_dim/2);
+    return ret;
+}
+
+/*! Get Area of \p rseg. */
+static inline float
+rseg2f_getArea(const rseg2f * rseg)
+{
+    float area = cring2f_getArea(&rseg->r) * (rseg->q - rseg->p) / M_PI;
+    if (area < 0) { PERR("Negative area\n"); }
+    return area;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+rseg2f_fprint(FILE * stream, const rseg2f * a)
+{
+    if (a) {
+        fprintf(stream,
+                "[c:[%f,%f],ri:%f,ro:%f,p:%f,q:%f]",
+                a->r.c.x, a->r.c.y, a->r.ri, a->r.ro, a->p, a->q);
+    } else {
+        fprintf(stream, "(nil)");
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg with transition \p trans
+ * and put result in \p curr.
+ */
+static inline void
+rseg2f_linterpol(const rseg2f * src, float prg, const rseg2f *dst,
+                 rseg2f * curr)
+{
+    PTEST("\n");
+    cring2f_linterpol(&src->r, prg, &dst->r, &curr->r);
+    curr->p = float_linterpol(src->p, prg, dst->p);
+    curr->q = float_linterpol(src->q, prg, dst->q);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_rseg2f(const rseg2f * a, chv_t * chv)
+{
+    int ret = 0;
+    ret += chv_enc_cring2f(&a->r, chv);
+    ret += chv_enc_f32be(chv, &a->p);
+    ret += chv_enc_f32be(chv, &a->q);
+    return ret;
+}
+
+static inline int
+chv_dec_rseg2f(rseg2f * a, chv_t * chv)
+{
+    int cnt = 0, ret = 0;
+    if ((ret = chv_dec_cring2f(&a->r, chv)) >= 0) cnt += ret; else return ret;
+    if ((ret = chv_dec_f32be(chv, &a->p)) >= 0) cnt += ret; else return ret;
+    if ((ret = chv_dec_f32be(chv, &a->q)) >= 0) cnt += ret; else return ret;
+    return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

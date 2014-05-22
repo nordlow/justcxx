@@ -1,0 +1,213 @@
+#include "gen_shapes.h"
+#include "mean.h"
+
+void
+box2f_genLetterX(const box2f * ext, float rxd, vec2f wpolyX[8])
+{
+  float sep = (ext->u.x - ext->l.x) * rxd; /* separation */
+
+  wpolyX[0].x = ext->l.x;
+  wpolyX[0].y = ext->l.y;
+  wpolyX[1].x = ext->l.x + sep;
+  wpolyX[1].y = ext->l.y;
+  wpolyX[2].x = ext->u.x;
+  wpolyX[2].y = ext->u.y;
+  wpolyX[3].x = ext->u.x - sep;
+  wpolyX[3].y = ext->u.y;
+
+  wpolyX[4].x = ext->u.x - sep;
+  wpolyX[4].y = ext->l.y;
+  wpolyX[5].x = ext->u.x;
+  wpolyX[5].y = ext->l.y;
+  wpolyX[6].x = ext->l.x + sep;
+  wpolyX[6].y = ext->u.y;
+  wpolyX[7].x = ext->l.x;
+  wpolyX[7].y = ext->u.y;
+}
+
+void
+box2f_genArrow(const box2f * ext, vec2f head[3], vec2f tail[4])
+{
+  vec2f dim;
+  box2f_rdDim(ext, &dim);
+
+  const float tw = dim.x * M_GOLDRAT; /* tail width */
+  const float ts = (dim.x - tw) * 0.5f;	/* tail space */
+
+  const float hh = dim.y * M_GOLDRAT; /* head height */
+
+  head[0].x = ext->l.x;
+  head[0].y = ext->l.y + hh;
+
+  head[1].x = float_mean2(ext->l.x, ext->u.x);
+  head[1].y = ext->l.y;
+
+  head[2].x = ext->u.x;
+  head[2].y = ext->l.y + hh;
+
+  tail[0].x = ext->l.x + ts;
+  tail[0].y = ext->u.y;
+
+  tail[1].x = ext->l.x + ts;
+  tail[1].y = ext->l.y + hh;
+
+  tail[2].x = ext->u.x - ts;
+  tail[2].y = ext->l.y + hh;
+
+  tail[3].x = ext->u.x - ts;
+  tail[3].y = ext->u.y;
+}
+
+void
+vec2f_genDirTri(const vec2f * p, const vec2f * q, float br, vec2f tri[3])
+{
+  vec2f d;
+
+  vec2f_diff(q, p, &d);		/* vector from \p p to \p q */
+  vec2f_normalize(&d, 2);	/* normalized */
+
+  /* generate left base point */
+  vec2f_rot90(&d, &tri[0]);	/* 90 Degrees clockwise */
+  vec2f_mulS(&tri[0], br);
+  vec2f_addxy(&tri[0], p->x, p->y);
+
+  /* destination point */
+  tri[1] = *q;
+
+  /* generate right base point */
+  vec2f_rotm90(&d, &tri[2]);	/* 90 Degrees counter-clockwise */
+  vec2f_mulS(&tri[2], br);
+  vec2f_addxy(&tri[2], p->x, p->y);
+}
+
+void
+vec2f_genDirQuad(const vec2f * p, const vec2f * q, float prad, float qrad,
+		 vec2f quad[4])
+{
+  vec2f d;
+
+  vec2f_diff(q, p, &d);		/* vector from \p p to \p q */
+  vec2f_normalize(&d, 2);	/* normalized */
+
+  /* generate "left" p point */
+  vec2f_rot90(&d, &quad[0]);	/* 90 Degrees clockwise */
+  vec2f_mulS(&quad[0], prad);
+  vec2f_addxy(&quad[0], p->x, p->y);
+
+  /* generate "right" p point */
+  vec2f_rotm90(&d, &quad[3]);	/* 90 Degrees counter-clockwise */
+  vec2f_mulS(&quad[3], prad);
+  vec2f_addxy(&quad[3], p->x, p->y);
+
+  /* generate "left" q point */
+  vec2f_rot90(&d, &quad[1]);	/* 90 Degrees clockwise */
+  vec2f_mulS(&quad[1], qrad);
+  vec2f_addxy(&quad[1], q->x, q->y);
+
+  /* generate "right" q point */
+  vec2f_rotm90(&d, &quad[2]);	/* 90 Degrees counter-clockwise */
+  vec2f_mulS(&quad[2], qrad);
+  vec2f_addxy(&quad[2], q->x, q->y);
+}
+
+void
+vec2f_genDirArrow(const vec2f * p, const vec2f * q, float prad, float qrad,
+		  vec2f hex[6])
+{
+  vec2f d;
+
+  vec2f_diff(q, p, &d);		/* vector from \p p to \p q */
+  vec2f_normalize(&d, 2);	/* normalized */
+
+  /* generate "left" p point */
+  vec2f_rot90(&d, &hex[0]);	/* 90 Degrees clockwise */
+  vec2f_mulS(&hex[0], prad);
+  vec2f_addxy(&hex[0], p->x, p->y);
+
+  /* generate "mid" p point */
+  hex[1] = *p;			/* centered */
+
+  /* generate "right" p point */
+  vec2f_rotm90(&d, &hex[2]);	/* 90 Degrees counter-clockwise */
+  vec2f_mulS(&hex[2], prad);
+  vec2f_addxy(&hex[2], p->x, p->y);
+
+  /* generate "right" q point */
+  vec2f_rotm90(&d, &hex[3]);	/* 90 Degrees counter-clockwise */
+  vec2f_mulS(&hex[3], qrad);
+  vec2f_addxy(&hex[3], q->x, q->y);
+
+  /* generate "mid" p point */
+  hex[4] = d;			/* 0 Degrees straigh ahead */
+  vec2f_mulS(&hex[4], qrad);
+  vec2f_addxy(&hex[4], q->x, q->y);
+
+  /* generate "left" q point */
+  vec2f_rot90(&d, &hex[5]);	/* 90 Degrees clockwise */
+  vec2f_mulS(&hex[5], qrad);
+  vec2f_addxy(&hex[5], q->x, q->y);
+}
+
+void
+box2f_genQuad(const box2f * box, vec2f quad[4])
+{
+  vec2farray_set4v(quad,
+		   box->l.x, box->l.y,
+		   box->u.x, box->l.y,
+		   box->u.x, box->u.y,
+		   box->l.x, box->u.y);
+}
+
+void
+box2f_genRotQuad(const box2f * box, ROTANG_t rotang, vec2f quad[4])
+{
+  vec2farray_set4v(quad,
+		   box->l.x, box->l.y,
+		   box->u.x, box->l.y,
+		   box->u.x, box->u.y,
+		   box->l.x, box->u.y);
+
+  /* rotate quad */
+  vec2f cen; box2f_rdCen(box, &cen);
+  mat2f_sub_mvmul_add(&quad[0], &g_rottab[rotang], &cen);
+  mat2f_sub_mvmul_add(&quad[1], &g_rottab[rotang], &cen);
+  mat2f_sub_mvmul_add(&quad[2], &g_rottab[rotang], &cen);
+  mat2f_sub_mvmul_add(&quad[3], &g_rottab[rotang], &cen);
+}
+
+void
+box2f_genRelT2T(const box2f * boxS, const box2f * boxD,
+		vec2f stri[3], vec2f dtri[3])
+{
+  vec2f scen, sdim;		/* source center and dimension */
+  box2f_rdCenDim(boxS, &scen, &sdim);
+
+  vec2f dcen;			/* destination center */
+  box2f_rdCen(boxD, &dcen);
+
+  /* source tri */
+  for (int i = 0; i < 3; i++) { stri[i] = scen; }
+
+  /* destination tri */
+  vec2f_genDirTri(&scen, &dcen, float_min(sdim.x, sdim.y) * 0.25f, dtri);
+}
+
+void
+box2f_genRelArrowH2H(const box2f * boxS, const box2f * boxD,
+		     vec2f shex[6], vec2f dhex[6])
+{
+  vec2f scen, sdim;		/* source center and dimension */
+  box2f_rdCenDim(boxS, &scen, &sdim);
+
+  vec2f dcen, ddim;		/* destination center and dimension */
+  box2f_rdCenDim(boxD, &dcen, &ddim);
+
+  /* source hex */
+  for (int i = 0; i < 6; i++) { shex[i] = scen; }
+
+  /* destination hex */
+  vec2f_genDirArrow(&scen, &dcen,
+		    float_min(sdim.x, sdim.y) * 0.5f,
+		    float_min(ddim.x, ddim.y) * 0.5f * M_GOLDRAT,
+		    dhex);
+}

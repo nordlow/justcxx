@@ -1,0 +1,906 @@
+/*!
+ * \file vec2f.hpp
+ * \brief Two-dimensional Vector of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+#include "utils.h"
+#include "chv.h"
+#include "../linterpol.h"
+#include "../extremes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of floats.
+ */
+typedef struct vec2f
+{
+  float x;			/**< X Coordinate. */
+  float y;			/**< Y Coordinate. */
+} vec2f;
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set \p a to the vector [\p x, \p y].
+ */
+
+static inline void
+vec2f_set(vec2f * a, float x, float y)
+{
+  a->x = x;
+  a->y = y;
+}
+
+/*!
+ * Set \p a to the vector [s, s].
+ */
+static inline void
+vec2f_sets(vec2f * a, float s)
+{
+  a->x = s;
+  a->y = s;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+vec2f_set_copy(vec2f * a, const vec2f * b)
+{
+  *a = *b;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Set the array of vec2f's \p a to the points
+ * [x0, y0], [x1, y1] and [x2, y2].
+ */
+static inline void
+vec2farray_set3v(vec2f a[3],
+		 float x0, float y0,
+		 float x1, float y1,
+		 float x2, float y2)
+{
+  a[0].x = x0; a[0].y = y0;
+  a[1].x = x1; a[1].y = y1;
+  a[2].x = x2; a[2].y = y2;
+}
+
+/*!
+ * Set the array of vec2f's \p a to the points
+ * [x0, y0], [x1, y1] and [x2, y2] and [x3, y3].
+ */
+static inline void
+vec2farray_set4v(vec2f a[4],
+		 float x0, float y0,
+		 float x1, float y1,
+		 float x2, float y2,
+		 float x3, float y3)
+{
+  a[0].x = x0; a[0].y = y0;
+  a[1].x = x1; a[1].y = y1;
+  a[2].x = x2; a[2].y = y2;
+  a[3].x = x3; a[3].y = y3;
+}
+
+/*!
+ * Set the array of vec2f's \p a to the points
+ */
+static inline void
+vec2farray_set5v(vec2f a[5],
+		 float x0, float y0,
+		 float x1, float y1,
+		 float x2, float y2,
+		 float x3, float y3,
+		 float x4, float y4)
+{
+  a[0].x = x0; a[0].y = y0;
+  a[1].x = x1; a[1].y = y1;
+  a[2].x = x2; a[2].y = y2;
+  a[3].x = x3; a[3].y = y3;
+  a[4].x = x4; a[4].y = y4;
+}
+
+/*!
+ * Set the array of vec2f's \p a to the points
+ */
+static inline void
+vec2farray_set6v(vec2f a[6],
+		 float x0, float y0,
+		 float x1, float y1,
+		 float x2, float y2,
+		 float x3, float y3,
+		 float x4, float y4,
+		 float x5, float y5)
+{
+  a[0].x = x0; a[0].y = y0;
+  a[1].x = x1; a[1].y = y1;
+  a[2].x = x2; a[2].y = y2;
+  a[3].x = x3; a[3].y = y3;
+  a[4].x = x4; a[4].y = y4;
+  a[5].x = x5; a[5].y = y5;
+}
+
+/*!
+ * Set the array of vec2f's \p a to the points
+ */
+static inline void
+vec2farray_set7v(vec2f a[7],
+		 float x0, float y0,
+		 float x1, float y1,
+		 float x2, float y2,
+		 float x3, float y3,
+		 float x4, float y4,
+		 float x5, float y5,
+		 float x6, float y6)
+{
+  a[0].x = x0; a[0].y = y0;
+  a[1].x = x1; a[1].y = y1;
+  a[2].x = x2; a[2].y = y2;
+  a[3].x = x3; a[3].y = y3;
+  a[4].x = x4; a[4].y = y4;
+  a[5].x = x5; a[5].y = y5;
+  a[6].x = x6; a[6].y = y6;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Allocate and Initialize a vector [\p x, \p y].
+ */
+static inline vec2f *
+vec2f_new(float x, float y)
+{
+  vec2f * a = (vec2f*)malloc(sizeof(vec2f));
+  vec2f_set(a, x, y);
+  return a;
+}
+
+/*!
+ * Allocate and Initialize a vector to \p b.
+ */
+static inline vec2f *
+vec2f_new_copy(const vec2f * b)
+{
+  vec2f * a = (vec2f*)malloc(sizeof(vec2f));
+  vec2f_set_copy(a, b);
+  return a;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Add \p b to \p a.
+ */
+static inline void
+vec2f_add(vec2f * a, const vec2f * b)
+{
+  a->x += b->x;
+  a->y += b->y;
+}
+
+/*!
+ * Add [\p x, \p y] to \p a.
+ */
+static inline void
+vec2f_addxy(vec2f * a, float x, float y)
+{
+  a->x += x;
+  a->y += y;
+}
+
+/*!
+ * Add the Scalar \p s to \p a.
+ */
+static inline void
+vec2f_adds(vec2f * a, float s)
+{
+  a->x += s;
+  a->y += s;
+}
+
+/*!
+ * Add \p b * \p c to \p a.
+ */
+static inline void
+vec2f_add_scaled(vec2f * a, const vec2f * b, float c)
+{
+  a->x += b->x * c;
+  a->y += b->y * c;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Subtract \p b from \p a.
+ */
+static inline void
+vec2f_sub(vec2f * a, const vec2f * b)
+{
+  a->x -= b->x;
+  a->y -= b->y;
+}
+
+/*!
+ * Subtract [\p x, \p y] from \p a.
+ */
+static inline void
+vec2f_subxy(vec2f * a, float x, float y)
+{
+  a->x -= x;
+  a->y -= y;
+}
+
+/*!
+ * Subtract from \p a the Scalar \p s.
+ */
+static inline void
+vec2f_subs(vec2f * a, float s)
+{
+  a->x -= s;
+  a->y -= s;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Multiply \p a with the scalar \p s.
+ */
+static inline void
+vec2f_mulS(vec2f * a, float s)
+{
+  a->x *= s;
+  a->y *= s;
+}
+
+/*!
+ * Scale \p a with the scalar \p s.
+ */
+static inline void
+vec2f_scale(vec2f * a, float s)
+{
+  vec2f_mulS(a, s);
+}
+
+/*!
+ * Multiply \p a with [\p x, \p y].
+ */
+static inline void
+vec2f_mulxy(vec2f * a, float x, float y)
+{
+  a->x *= x;
+  a->y *= y;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Divide \p a with the scalar \p s.
+ */
+static inline void
+vec2f_divs(vec2f * a, float s)
+{
+  a->x /= s;
+  a->y /= s;
+}
+
+/*!
+ * Divide \p a with [\p x, \p y].
+ */
+static inline void
+vec2f_divxy(vec2f * a, float x, float y)
+{
+  a->x /= x;
+  a->y /= y;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_sum(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = a->x + b->x;
+  c->y = a->y + b->y;
+}
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_sumxy(const vec2f * a, float bx, float by, vec2f * c)
+{
+  c->x = a->x + bx;
+  c->y = a->y + by;
+}
+
+/*!
+ * Sum \p a and [\p s, \p s] and put it in \p c.
+ */
+static inline void
+vec2f_sums(const vec2f * a, const float b, vec2f * c)
+{
+  c->x = a->x + b;
+  c->y = a->y + b;
+}
+
+/*!
+ * Sum \p a and \p b mul \p s and put it in \p c.
+ */
+static inline void
+vec2f_sumxy_scaled(const vec2f * a, float bx, float by, float s, vec2f * c)
+{
+  c->x = a->x + bx * s;
+  c->y = a->y + by * s;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the Arithmetic Mean of \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_mean(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = (a->x + b->x) * 0.5f;
+  c->y = (a->y + b->y) * 0.5f;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and the scalar \p b are equal.
+ */
+static inline int
+vec2f_eqs(const vec2f * a, float b)
+{
+  return (a->x == b &&
+	  a->y == b);
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+vec2f_eq(const vec2f * a, const vec2f * b)
+{
+  return (a->x == b->x &&
+	  a->y == b->y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and \p b are not equal.
+ */
+static inline int
+vec2f_neq(const vec2f * a, const vec2f * b)
+{
+  return (a->x != b->x ||
+	  a->y != b->y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if the vec2f-arrays \p a and \p b both length \p n are equal.
+ */
+static inline int
+vec2farray_eq(const vec2f * a, const vec2f * b, size_t n)
+{
+  return memcmp(a, b, n * sizeof(vec2f)) != 0;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the difference between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_diff(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = a->x - b->x;
+  c->y = a->y - b->y;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Componentwise Minimum between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_min(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = float_min(a->x, b->x);
+  c->y = float_min(a->y, b->y);
+}
+
+/*!
+ * Componentwise Maximum between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_max(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = float_max(a->x, b->x);
+  c->y = float_max(a->y, b->y);
+}
+
+/*!
+ * Componentwise Minimum and Maximum between \p a and \p b and put it in
+ * \p min and \p max.
+ */
+static inline void
+vec2f_minmax(const vec2f * a, const vec2f * b, vec2f * min, vec2f * max)
+{
+  min->x = float_min(a->x, b->x); min->y = float_min(a->y, b->y);
+  max->x = float_max(a->x, b->x); max->y = float_max(a->y, b->y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Componentwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwprod(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = a->x * b->x;
+  c->y = a->y * b->y;
+}
+
+/*!
+ * Componentwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwprodxy(const vec2f * a, float bx, float by, vec2f * c)
+{
+  c->x = a->x * bx;
+  c->y = a->y * by;
+}
+
+/*!
+ * Componentwise Product between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwprods(const vec2f * a, float b, vec2f * c)
+{
+  c->x = a->x * b;
+  c->y = a->y * b;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Componentwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwquot(const vec2f * a, const vec2f * b, vec2f * c)
+{
+  c->x = a->x / b->x;
+  c->y = a->y / b->y;
+}
+
+/*!
+ * Componentwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwquots(const vec2f * a, const float b, vec2f * c)
+{
+  c->x = a->x / b;
+  c->y = a->y / b;
+}
+
+/*!
+ * Componentwise Quotient between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2f_pwquotxy(const vec2f * a, float bx, float by, vec2f * c)
+{
+  c->x = a->x / bx;
+  c->y = a->y / by;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Componentwise Multiply and Sum.
+ * d = b * c + a;
+ */
+static inline void
+vec2f_pwprod_sum(const vec2f * a, const vec2f * b, const vec2f * c, vec2f * d)
+{
+  d->x = b->x * c->x + a->x;
+  d->y = b->y * c->y + a->y;
+}
+
+/*!
+ * Componentwise Scalar Multiply (Scale) and Sum (Shift).
+ * d = b * c + a;
+ */
+static inline void
+vec2f_pwprods_sum(const vec2f * a, const vec2f * b, float c, vec2f * d)
+{
+  d->x = b->x * c + a->x;
+  d->y = b->y * c + a->y;
+}
+
+/*!
+ * Scalar (Dot) Product between \p a and \p b.
+ */
+static inline float
+vec2f_dot(const vec2f * a, const vec2f * b)
+{
+  return (a->x * b->x + a->y * b->y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the Distance between \p a and \p b in 1-norm.
+ */
+static inline float
+vec2f_dist1(const vec2f * a, const vec2f * b)
+{
+  return (ABS(a->x - b->x) +
+	  ABS(a->y - b->y));
+}
+
+/*!
+ * Calculate the Euclidean Distance (2-norm) between \p a and \p b.
+ */
+static inline float
+vec2f_dist2(const vec2f * a, const vec2f * b)
+{
+  return float_hypot2d(a->x - b->x,
+		     a->y - b->y);
+}
+
+/*!
+ * Calculate the Dimension Distance Maximum between \p a and \p b.
+ */
+static inline float
+vec2f_dimdistmax(const vec2f * a, const vec2f * b)
+{
+  return (float_max2(ABS(a->x - b->x),
+		   ABS(a->y - b->y)));
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in \p n-Norm.
+ */
+static inline float
+vec2f_distn(const vec2f * a, const vec2f * b, int n)
+{
+  if (n == 1) {
+    return vec2f_dist1(a, b);
+  } else if (n == 2) {
+    return vec2f_dist2(a, b);
+  } else {
+    return 0;
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate the 1-Norm of \p a.
+ */
+static inline float
+vec2f_norm1(const vec2f * a)
+{
+  return ABS(a->x) + ABS(a->y);
+}
+
+/*!
+ * Calculate the 2-Norm of \p a.
+ */
+static inline float
+vec2f_norm2(const vec2f * a)
+{
+  return float_hypot2d(a->x, a->y);
+}
+
+/*!
+ * Calculate the \p n-Norm of \p a.
+ */
+static inline float
+vec2f_normn(const vec2f * a, int n)
+{
+  if (n == 1) {
+    return vec2f_norm1(a);
+  } else if (n == 2) {
+    return vec2f_norm2(a);
+  } else {
+    PWARN("cannot handle norm %d\n", n);
+    return 0;
+  }
+}
+
+/*!
+ * Normalize \p a with the \p n-Norm.
+ */
+static inline void
+vec2f_normalize(vec2f * a, int n)
+{
+  float norm = vec2f_normn(a, n);
+  a->x /= norm;
+  a->y /= norm;
+}
+
+/*!
+ * Normalize \p a with the \p n-Norm and then scale it again with \p s.
+ */
+static inline void
+vec2f_normalize_and_scale(vec2f * a, int n, float s)
+{
+  float norm = vec2f_normn(a, n);
+  a->x *= s / norm;
+  a->y *= s / norm;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline float
+vec2f_at(const vec2f * a, int i)
+{
+  return (&a->x)[i];
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg and put result in \p curr.
+ */
+static inline void
+vec2f_linterpol(const vec2f * src, float prg, const vec2f * dst, vec2f * curr)
+{
+  curr->x = float_linterpol(src->x, prg, dst->x);
+  curr->y = float_linterpol(src->y, prg, dst->y);
+}
+
+/*!
+ * Linearly Interpolate Array \p from src[i] to \p dst[i] at common progress \p prg and
+ * put result in \p curr[i].
+ */
+void
+vec2farray_linterpol(const vec2f * src, float prg, const vec2f * dst,
+		     vec2f * curr, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Calculate \p min, \p max and \p span along X and Y dimension.
+ */
+void
+vec2farray_rdSpanXY(const vec2f * a, size_t n,
+		    vec2f * min, vec2f * max, vec2f * span);
+
+/*!
+ * Calculate \p min, \p max and \p span along X dimension.
+ */
+void
+vec2farray_rdSpanX(const vec2f * a, size_t n,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate \p min, \p max and \p span along Y dimension.
+ */
+void
+vec2farray_rdSpanY(const vec2f * a, size_t n,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate \p min, \p max and \p span along radial dimension from
+ * center \p cen.
+ */
+void
+vec2farray_rdSpanR(const vec2f * a, size_t n, const vec2f * cen,
+		   float * min, float * max, float * span);
+
+/*!
+ * Calculate Center/Mean/Average of \p a of length \p n.
+ */
+void
+vec2farray_rdCen(const vec2f * a, size_t n, vec2f * cen);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+vec2f_fprint(FILE * stream, const vec2f * a)
+{
+  fprintf(stream, "[%f,%f]", a->x, a->y);
+}
+
+static inline void
+vec2f_print(const vec2f * a)
+{
+  vec2f_fprint(stdout, a);
+}
+
+void
+vec2f_fprintfv(FILE * stream, const vec2f * a, size_t n);
+
+void
+vec2farray_fprint(FILE * stream, const vec2f * in, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Generate a cos-sinus(angle) into a.
+ */
+static inline void
+vec2f_cosinAt(vec2f * a, float ang)
+{
+  vec2f_set(a, cosf(ang), sinf(ang));
+}
+
+/*!
+ * Generate a cos-sinus lookup table of length \p n.
+ */
+void
+vec2f_cosin(vec2f * tab, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Rotate the vector \p a +90 degrees and put the result in \p b.
+ *
+ * @use \c mat2f_genRotation() with \c mat2f_mvprod() for general rotation
+ * \complexity 1 NEG, 1 CAY
+ */
+static inline void
+vec2f_rot90(const vec2f * a, vec2f * b)
+{
+  const float a_x = a->x, a_y = a->y; /* allows \p a and \p b to be equal */
+  b->x = - a_y;
+  b->y = a_x;
+}
+
+/*!
+ * Rotate the vector \p a -90 degrees and put the result in \p b.
+ *
+ * @use \c mat2f_genRotation() with \c mat2f_mvprod() for general rotation
+ * \complexity 1 NEG, 1 COPY
+ */
+static inline void
+vec2f_rotm90(const vec2f * a, vec2f * b)
+{
+  const float a_x = a->x, a_y = a->y; /* allows \p a and \p b to be equal */
+  b->x = a_y;
+  b->y = - a_x;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+int vec2f_poly_covers_point(const vec2f * vtx, size_t vtxN,
+			    const vec2f * point);
+
+size_t vec2farray_nearest(const vec2f * vtx, size_t vtxN,
+			    const vec2f * point);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec2f(const vec2f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_f32be(chv, &a->x);
+  ret += chv_enc_f32be(chv, &a->y);
+  return ret;
+}
+
+static inline int
+chv_dec_vec2f(vec2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_f32be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+int
+chv_enc_vec2farray(chv_t * chv, const vec2f * a, size_t vtxN);
+
+int
+chv_dec_vec2farray(chv_t * chv, vec2f * a, size_t vtxN);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the vector \p a's components [\p x, \p y]
+ * is "Not a Number".
+ *
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+vec2f_is_NaN(const vec2f * a)
+{
+  return (isnan(a->x) ||
+	  isnan(a->y));
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>every</em> of the vector a's components [\p x, \p y]
+ * is "Finite".
+ *
+ * \return 1 if true, 0 otherwise.
+ */
+#if 0                           /* TODO: Fix for C++! */
+static inline int
+vec2f_isfinite(const vec2f * a)
+{
+  return (isfinite(a->x) &&
+	  isfinite(a->y));
+}
+#endif
+
+/*!
+ * Check if <em>all</em> of the vector a's components [\p x, \p y] are
+ * "Defined", that is "a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int vec2f_is_defined(const vec2f * a) { return (!vec2f_is_NaN(a)); }
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Swap the contents of \p a and \p b.
+ */
+static inline void vec2f_swap(vec2f * a, vec2f * b)
+{
+  vec2f tmp; tmp = *a; *a = *b; *b = tmp;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+void vec2farray_sum(const vec2f * a, const vec2f * b, vec2f * c,
+		    size_t n);
+
+/*!
+ * Sum \p a and [\p s, \p s] and put it in \p c.
+ */
+void vec2farray_sums(const vec2f * a, const float b, vec2f * c,
+		     size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Shuffle all \p n elements contained in the vec2f-array \p a.
+ */
+void vec2farray_shuffle(vec2f * a, size_t n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void vec2f_wobbleDim(vec2f * fac, float fa, uint8_t prg)
+{
+  fac->x = 1 + fa * prg / 256;
+  fac->y = 1 - fa * prg / 256;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

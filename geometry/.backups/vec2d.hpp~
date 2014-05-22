@@ -1,0 +1,278 @@
+/*!
+ * \file vec2d.hpp
+ * \brief Two-dimensional Vector of doubles.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include <math.h>
+#include "utils.h"
+#include "chv.h"
+#include "../linterpol.h"
+#include "../extremes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional vector of doubles.
+ */
+typedef struct
+{
+  double x;			/**< X Coordinate. */
+  double y;			/**< Y Coordinate. */
+} vec2d;
+
+/*!
+ * Set \p a to the vector [\p x, \p y].
+ */
+static inline void
+vec2d_set(vec2d * a, double x, double y)
+{
+  a->x = x;
+  a->y = y;
+}
+
+/*!
+ * Allocate and Initialize a vector [\p x, \p y].
+ */
+static inline vec2d *
+vec2d_new(double x, double y)
+{
+  vec2d * a = (vec2d*)malloc(sizeof(vec2d));
+  vec2d_set(a, x, y);
+  return a;
+}
+
+/*!
+ * Add [\p x, \p y] to \p a.
+ */
+static inline void
+vec2d_add(vec2d * a, double x, double y)
+{
+  a->x += x;
+  a->y += y;
+}
+
+/*!
+ * Subtract [\p x, \p y] from \p a.
+ */
+static inline void
+vec2d_sub(vec2d * a, double x, double y)
+{
+  a->x -= x;
+  a->y -= y;
+}
+
+/*!
+ * Multiply \p a with the scalar \p x.
+ */
+static inline void
+vec2d_mulS(vec2d * a, double x)
+{
+  a->x *= x;
+  a->y *= x;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Divide \p a with the scalar \p s.
+ */
+static inline void
+vec2d_divs(vec2d * a, double s)
+{
+  a->x /= s;
+  a->y /= s;
+}
+
+/*!
+ * Divide \p a with [\p x, \p y].
+ */
+static inline void
+vec2d_divxy(vec2d * a, double x, double y)
+{
+  a->x /= x;
+  a->y /= y;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Sum \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2d_sum(const vec2d * a, const vec2d * b, vec2d * c)
+{
+  c->x = a->x + b->x;
+  c->y = a->y + b->y;
+}
+
+/*!
+ * Calculate the Arithmetic Mean of \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2d_mean(const vec2d * a, const vec2d * b, vec2d * c)
+{
+  c->x = (a->x + b->x) * 0.5;
+  c->y = (a->y + b->y) * 0.5;
+}
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+vec2d_eq(const vec2d * a, const vec2d * b)
+{
+  return (a->x == b->x &&
+	  a->y == b->y);
+}
+
+/*!
+ * Calculate the difference between \p a and \p b and put it in \p c.
+ */
+static inline void
+vec2d_diff(const vec2d * a, const vec2d * b, vec2d * c)
+{
+  c->x = a->x - b->x;
+  c->y = a->y - b->y;
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in 1-norm.
+ */
+static inline double
+vec2d_dist1(const vec2d * a, const vec2d * b)
+{
+  return (ABS(a->x - b->x) +
+	  ABS(a->y - b->y));
+}
+
+/*!
+ * Calculate the Euclidean Distance (2-norm) between \p a and \p b.
+ */
+static inline double
+vec2d_dist2(const vec2d * a, const vec2d * b)
+{
+  return double_hypot2d(a->x - b->x,
+		     a->y - b->y);
+}
+
+/*!
+ * Calculate the Distance between \p a and \p b in \p n-Norm.
+ */
+static inline double
+vec2d_distn(const vec2d * a, const vec2d * b, int n)
+{
+  if (n == 1) {
+    return vec2d_dist1(a, b);
+  } else if (n == 2) {
+    return vec2d_dist2(a, b);
+  } else {
+    return 0;
+  }
+}
+
+/*!
+ * Calculate the 1-Norm of \p a.
+ */
+static inline double
+vec2d_norm1(const vec2d * a)
+{
+  return ABS(a->x) + ABS(a->y);
+}
+
+/*!
+ * Calculate the 2-Norm of \p a.
+ */
+static inline double
+vec2d_norm2(const vec2d * a)
+{
+  return double_hypot2d(a->x, a->y);
+}
+
+/*!
+ * Calculate the \p n-Norm of \p a.
+ */
+static inline double
+vec2d_normn(const vec2d * a, int n)
+{
+  if (n == 1) {
+    return vec2d_norm1(a);
+  } else if (n == 2) {
+    return vec2d_norm2(a);
+  } else {
+    PWARN("cannot handle norm %d\n", n);
+    return 0;
+  }
+}
+
+/*!
+ * Indexing of vector \p a at \p i.
+ *
+ * \return element at index \p i.
+ */
+static inline double
+vec2d_at(const vec2d * a, int i)
+{
+  return (&a->x)[i];
+}
+
+static inline void
+vec2d_fprint(FILE * stream, const vec2d * a)
+{
+  fprintf(stream, "[%f,%f]", a->x, a->y);
+}
+
+void
+vec2darray_fprint(FILE * stream, const vec2d * in, int n);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_vec2d(const vec2d * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_f64be(chv, &a->x);
+  ret += chv_enc_f64be(chv, &a->y);
+  return ret;
+}
+
+static inline int
+chv_dec_vec2d(vec2d * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_f64be(chv, &a->x)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f64be(chv, &a->y)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+int
+chv_enc_vec2darray(chv_t * chv, const vec2d * a, uint32_t vtxN);
+
+int
+chv_dec_vec2darray(chv_t * chv, vec2d * a, uint32_t vtxN);
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Check if <em>any</em> of the vector \p a's components [x, y, z] is
+ * "Not a Number".
+ * \return 1 if true, 0 otherwise.
+ */
+static inline int
+vec2d_is_NaN(const vec2d * a)
+{
+  return (isnan(a->x) ||
+	  isnan(a->y));
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

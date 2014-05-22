@@ -1,0 +1,433 @@
+/*!
+ * \file rbox2f.hpp
+ * \brief Two-dimensional Rounded Box of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "box2f.hpp"
+#include "CORNMASK_enum.hpp"
+#include "CORNSTYLE_enum.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================== */
+
+/*!
+ * Two-dimensional rbox of floats.
+ */
+class rbox2f
+{
+public:
+    const char * concept_name() const { return "2-Dimensional Box (Rectangle)"; } ///< Get Knowledge \em Concept Name.
+public:
+    box2f       b;              /**< Inner Box. */
+    vec2f       r;              /**< Exclusive radius. */
+    CORNMASK_t  cornmask;		/**< Corner Rounding Mask. */
+    CORNSTYLE_t cornstyle;      /**< Corner Style. */
+};
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Set \p a to the rbox [lx, ly, ux, uy, rx, ry]. */
+inline void
+rbox2f_set(rbox2f * a,
+           float lx, float ly, float ux, float uy,
+           float rx, float ry, CORNMASK_t cornmask)
+{
+    a->b.l.x = lx;
+    a->b.l.y = ly;
+    a->b.u.x = ux;
+    a->b.u.y = uy;
+    a->r.x = rx;
+    a->r.y = ry;
+    a->cornmask = cornmask;
+    a->cornstyle = CORNSTYLE_ELL_MIN;
+}
+
+/*! Set \p a to the Rounded Square centered at \p c with Side-Radius s and Round
+ *  Radius r. *
+ * More precisely set a to [c->x - s, c->y - s, c->x + s, c->y + s, r, r]
+ */
+inline void
+rbox2f_setSqr(rbox2f * a, const vec2f * c, const float s, const float r)
+{
+    a->b.l.x = c->x - s;
+    a->b.l.y = c->y - s;
+    a->b.u.x = c->x + s;
+    a->b.u.y = c->y + s;
+    a->r.x = r;
+    a->r.y = r;
+    a->cornmask = CORNMASK_FULL;
+    a->cornstyle = CORNSTYLE_ELL_MIN;
+}
+
+/*! Set \p a to the rounded box with Inner Box \p b and Round Radius \p r.
+ */
+inline void
+rbox2f_set_IBox_Rad(rbox2f * a,
+                    const box2f * b, const vec2f * r,
+                    CORNMASK_t cornmask, CORNSTYLE_t cornstyle)
+{
+    a->b = *b;
+    a->r = *r;
+    a->cornmask = cornmask;
+    a->cornstyle = cornstyle;
+}
+
+/*! Set \p a to the rounded box with Inner Box \p b and Relative (to the
+ *  dimensions of \p b) Round Radius \p rr.
+ */
+inline void
+rbox2f_set_IBox_RRad(rbox2f * a,
+                     const box2f * b, const vec2f * rr,
+                     CORNMASK_t cornmask, CORNSTYLE_t cornstyle)
+{
+    a->b = *b;
+    vec2f bdim; box2f_rdDim(b, &bdim);
+    vec2f_pwprod(&bdim, rr, &a->r);
+    a->cornmask = cornmask;
+    a->cornstyle = CORNSTYLE_ELL_MIN;
+}
+
+/*! Set \p rbox using the Outer Box \p boxO and the Inner Relative Rounding
+ *  Radius \p rradI from 0.0 to 1.0.
+ */
+void
+rbox2f_set_OBox_IRRad(rbox2f * rbox,
+                      const box2f * boxO, const vec2f * rradI,
+                      CORNMASK_t cornmask, CORNSTYLE_t cornstyle);
+
+/*! Set \p a's both corners to the point \p b and Radius to zero. */
+inline void
+rbox2f_set_Point(rbox2f * a, const vec2f * b)
+{
+    a->b.l = *b;
+    a->b.u = *b;
+    a->r.x = 0;
+    a->r.y = 0;
+    a->cornmask = CORNMASK_FULL;
+    a->cornstyle = CORNSTYLE_ELL_MIN;;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Allocate and Initialize an rbox at
+ * [ \p lx, \p ly, \p ux, \p uy, \p rx, \p ry ].
+ */
+inline rbox2f *
+rbox2f_new(float lx, float ly, float ux, float uy,
+           float rx, float ry)
+{
+    rbox2f * a = (rbox2f*)malloc(sizeof(rbox2f));
+    rbox2f_set(a, lx, ly, ux, uy, rx, ry, CORNMASK_FULL);
+    return a;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Read \p rbox Dimensions into \p dim. */
+inline void
+rbox2f_rdDim(const rbox2f * rbox, vec2f * dim)
+{
+    dim->x = rbox->b.u.x - rbox->b.l.x + rbox->r.x;
+    dim->y = rbox->b.u.y - rbox->b.l.y + rbox->r.y;
+}
+
+/*! Get \p rbox Dimension along dimension \p i. */
+inline float
+rbox2f_getDimi(const rbox2f * rbox, int i)
+{
+    if (i == 0) {
+        return rbox->b.u.x - rbox->b.l.x + rbox->r.x;
+    } else {
+        return rbox->b.u.y - rbox->b.l.y + rbox->r.y;
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Read \p rbox Center into \p cen. */
+inline void
+rbox2f_rdCen(const rbox2f * rbox, vec2f * cen)
+{
+    cen->x = (rbox->b.l.x + rbox->b.u.x) * 0.5f;
+    cen->y = (rbox->b.l.y + rbox->b.u.y) * 0.5f;
+}
+
+/*! Get \p rbox Center along dimension \p i. */
+inline float
+rbox2f_getCeni(const rbox2f * rbox, int i)
+{
+    if (i == 0) {
+        return (rbox->b.l.x + rbox->b.u.x) * 0.5f;
+    } else {
+        return (rbox->b.l.y + rbox->b.u.y) * 0.5f;
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Get \p rbox Area. */
+inline float
+rbox2f_getArea(const rbox2f * rbox)
+{
+    vec2f bdim; box2f_rdDim(&rbox->b, &bdim);
+    return (box2f_getArea(&rbox->b) +
+            M_PI * (rbox->r.x *
+                    rbox->r.y) +
+            2 * bdim.x * (rbox->r.y) +
+            2 * bdim.y * (rbox->r.x)
+            );
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Relative Affine Transform.
+ *
+ * Upon changing prev_ext to next_ext change the src to dst accordingly
+ * so that the src relative size position relative to prev_ext is preserved.
+ */
+inline void
+rbox2f_relaffine(const box2f * prev_ext, const box2f * next_ext,
+                 const rbox2f * src, rbox2f * dst)
+{
+    /* transform box part */
+    box2f_relaffine(prev_ext, next_ext, &src->b, &dst->b);
+
+    /* transform radius (rounded) part  */
+    vec2f prev_dim; box2f_rdDim(prev_ext, &prev_dim);
+    vec2f next_dim; box2f_rdDim(next_ext, &next_dim);
+    vec2f dim_ratio; vec2f_pwquot(&next_dim, &prev_dim, &dim_ratio);
+    vec2f_pwprod(&src->r, &dim_ratio, &dst->r);
+}
+
+/*! Return non-zero if \p a and \p b are equal.
+ */
+inline int
+rbox2f_eq(const rbox2f * a, const rbox2f * b)
+{
+    return (vec2f_eq(&a->b.l, &b->b.l) &&
+            vec2f_eq(&a->b.u, &b->b.u) &&
+            vec2f_eq(&a->r, &b->r));
+}
+
+/*! Extend the sides of \p a the shift \p s. */
+inline void
+rbox2f_extend(rbox2f * a, const vec2f * s)
+{
+    a->b.l.x -= s->x;
+    a->b.l.y -= s->y;
+    a->b.u.x += s->x;
+    a->b.u.y += s->y;
+}
+
+/*! Compress the sides of \p a the shift \p s and put result in \p b. */
+inline void
+rbox2f_compress(const rbox2f * a, const vec2f * s, rbox2f * b)
+{
+    b->b.l.x = a->b.l.x + s->x;
+    b->b.l.y = a->b.l.y + s->y;
+    b->b.u.x = a->b.u.x - s->x;
+    b->b.u.y = a->b.u.y - s->y;
+}
+
+/*! Read the Control Point Mask of \p rbox at \p mpos and bit-or it with
+ *  contents of \p ctrlPM. */
+int
+rbox2f_rdCtrlPM_SFORM(const rbox2f * rbox,
+                      const vec2f * mpos, uint8_t * ctrlPM,
+                      uint32_t * rsz_i, bool set_flag);
+
+/*! Resize \p rbox using the user (mouse) drag from \p mpos the shift
+ * \p mshift.
+ *
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+int
+rbox2f_shiftCtrlP(rbox2f * rbox,
+                  const vec2f * mpos, const vec2f * mshift,
+                  const vec2f * mindim, const uint8_t * ctrlPM);
+
+/*! Translate the sides of \p a the shift \p s and put the result in \p b.
+ */
+inline void
+rbox2f_move(const rbox2f * a, const vec2f * s, rbox2f * b)
+{
+    box2f_move(&a->b, s, &b->b);
+}
+
+/*! Horizontally Translate the sides of \p a the shift \p sx and put the result
+ in \p b.*/
+inline void
+rbox2f_htransl(const rbox2f * a, float sx, rbox2f * b)
+{
+    box2f_htransl(&a->b, sx, &b->b);
+}
+
+/*! Vertically Translate the sides of \p a the shift \p sy and put the result in
+ *  \p b.*/
+inline void
+rbox2f_vtransl(const rbox2f * a, float sy, rbox2f * b)
+{
+    box2f_vtransl(&a->b, sy, &b->b);
+}
+
+/*! Centered Scale \p a the factor \p f and put the result in \p b. */
+inline void
+rbox2f_cscale(const rbox2f * a, float f, rbox2f * b)
+{
+    vec2f dim;			/* dimension */
+    vec2f s;			/* shift */
+    rbox2f_rdDim(a, &dim);
+    s.x = - (dim.x * (1 - f) / 2);
+    s.y = - (dim.y * (1 - f) / 2);
+    *b = *a;
+    rbox2f_extend(b, &s);
+}
+
+/*! Centered Scale \p a the factor \p f and put the result in \p b. */
+inline void
+rbox2f_cscalev(const rbox2f * a, const vec2f * f, rbox2f * b)
+{
+    vec2f dim;			/* dimension */
+    vec2f s;			/* shift */
+    rbox2f_rdDim(a, &dim);
+    s.x = - (dim.x * (1 - f->x) / 2);
+    s.y = - (dim.y * (1 - f->y) / 2);
+    *b = *a;
+    rbox2f_extend(b, &s);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*! Calculate sub-rbox when \p ba is viewed relative to \p a and put
+ result in \p b.
+ *
+ * The inverse operation of \c \c rbox2f_rdRel().
+ */
+inline void
+rbox2f_rdSub(const box2f * a, const rbox2f * ba, rbox2f * b)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    vec2f_set(&b->b.l, a->l.x + ad.x * ba->b.l.x, a->l.y + ad.y * ba->b.l.y);
+    vec2f_set(&b->b.u, a->l.x + ad.x * ba->b.u.x, a->l.y + ad.y * ba->b.u.y);
+    vec2f_pwprod(&ba->r, &ad, &b->r);
+    b->cornmask = ba->cornmask;
+    b->cornstyle = ba->cornstyle;
+}
+
+/*! The inverse operation of \c \c rbox2f_rdSub().
+ */
+inline void
+rbox2f_rdRel(const box2f * a, const rbox2f * b, rbox2f * ba)
+{
+    vec2f ad; box2f_rdDim(a, &ad);
+    vec2f_set(&ba->b.l, (b->b.l.x - a->l.x) / ad.x, (b->b.l.y - a->l.y) / ad.y);
+    vec2f_set(&ba->b.u, (b->b.u.x - a->l.x) / ad.x, (b->b.u.y - a->l.y) / ad.y);
+    vec2f_pwquot(&b->r, &ad, &ba->r);
+    ba->cornmask = b->cornmask;
+    ba->cornstyle = b->cornstyle;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline int
+rbox2f_covers_vec2f(const rbox2f * a, const vec2f * b, bool lin_flag)
+{
+    box2f exta;			/* vertically extend part of \p a */
+
+    /* check horizontally extend inner box */
+    box2f_extendH(&a->b, a->r.x, &exta);
+    if (box2f_covers_vec2f(&exta, b)) { return TRUE; }
+
+    /* check vertically extend inner box */
+    box2f_extendV(&a->b, a->r.y, &exta);
+    if (box2f_covers_vec2f(&exta, b)) { return TRUE; }
+
+    const float irx = 1.0f / a->r.x, iry = 1.0f / a->r.y; /* inverses */
+    const vec2f e0 = { a->b.l.x, a->b.l.y };
+    const vec2f e1 = { a->b.u.x, a->b.l.y };
+    const vec2f e2 = { a->b.u.x, a->b.u.y };
+    const vec2f e3 = { a->b.l.x, a->b.u.y };
+
+    if (lin_flag) {
+        if (ABS((b->x-e0.x)*irx) + ABS((b->y-e0.y)*iry) < 1) { return TRUE; }
+        if (ABS((b->x-e1.x)*irx) + ABS((b->y-e1.y)*iry) < 1) { return TRUE; }
+        if (ABS((b->x-e2.x)*irx) + ABS((b->y-e2.y)*iry) < 1) { return TRUE; }
+        if (ABS((b->x-e3.x)*irx) + ABS((b->y-e3.y)*iry) < 1) { return TRUE; }
+    } else {
+        if (SQR((b->x-e0.x)*irx) + SQR((b->y-e0.y)*iry) < 1) { return TRUE; }
+        if (SQR((b->x-e1.x)*irx) + SQR((b->y-e1.y)*iry) < 1) { return TRUE; }
+        if (SQR((b->x-e2.x)*irx) + SQR((b->y-e2.y)*iry) < 1) { return TRUE; }
+        if (SQR((b->x-e3.x)*irx) + SQR((b->y-e3.y)*iry) < 1) { return TRUE; }
+    }
+
+    return FALSE;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Linearly Interpolate from \p src to \p dst at progress \p prg with transition \p trans
+ * and put result in \p curr.
+ */
+inline void
+rbox2f_linterpol(const rbox2f * src, float prg, const rbox2f *dst, rbox2f * curr)
+{
+    vec2f_linterpol(&src->b.l, prg, &dst->b.l, &curr->b.l);
+    vec2f_linterpol(&src->b.u, prg, &dst->b.u, &curr->b.u);
+    vec2f_linterpol(&src->r, prg, &dst->r, &curr->r);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline void
+rbox2f_fprint(FILE * stream, const rbox2f * a)
+{
+    if (a) {
+        fprintf(stream, "[[%f,%f],[%f,%f],[%f,%f],[mask:0x%x],[style:%d]]",
+                a->b.l.x, a->b.l.y, a->b.u.x, a->b.u.y, a->r.x, a->r.y,
+                a->cornmask, a->cornstyle);
+    } else {
+        fprintf(stream, "(nil)");
+    }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+inline int
+chv_enc_rbox2f(const rbox2f * a, chv_t * chv)
+{
+    int ret = 0;
+    ret += chv_enc_box2f(&a->b, chv);
+    ret += chv_enc_vec2f(&a->r, chv);
+    if (sizeof(a->cornmask == 1)) { ret += chv_enc_u8(chv, (const uint8_t*)&a->cornmask); } else { PERR("sizeof cornmask != 1."); }
+    if (sizeof(a->cornstyle == 1)) { ret += chv_enc_u8(chv, (const uint8_t*)&a->cornstyle); } else { PERR("sizeof cornstyle != 1."); }
+    return ret;
+}
+
+inline int
+chv_dec_rbox2f(rbox2f * a, chv_t * chv)
+{
+    int cnt = 0, ret = 0;
+    if ((ret = chv_dec_box2f(&a->b, chv)) >= 0) cnt += ret; else return ret;
+    if ((ret = chv_dec_vec2f(&a->r, chv)) >= 0) cnt += ret; else return ret;
+    if (sizeof(a->cornmask == 1)) { if ((ret = chv_dec_u8(chv, (uint8_t*)&a->cornmask)) >= 0) cnt += ret; else return ret; } else { PERR("sizeof cornmask != 1."); }
+    if (sizeof(a->cornstyle == 1)) { if ((ret = chv_dec_u8(chv, (uint8_t*)&a->cornstyle)) >= 0) cnt += ret; else return ret; } else { PERR("sizeof cornstyle != 1."); }
+    return cnt;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+void rbox2f_test(void);
+
+/* ========================================================================== */
+
+#ifdef __cplusplus
+}
+#endif

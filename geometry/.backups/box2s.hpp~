@@ -1,0 +1,194 @@
+/*!
+ * \file box2s.hpp
+ * \brief Two-Dimensional Box of shorts.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "vec2s.h"
+#include "../extremes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-Dimensional Box of shorts.
+ */
+typedef struct
+{
+  vec2s l;			/**< Lower corner. */
+  vec2s u;			/**< Upper corner. */
+} box2s;
+
+/*!
+ * Set \p a to the box [\p lx, \p ly, \p ux, \p uy]
+ */
+static inline void
+box2s_set(box2s * a, short lx, short ly, short ux, short uy)
+{
+  a->l.x = lx;
+  a->l.y = ly;
+  a->u.x = ux;
+  a->u.y = uy;
+}
+
+/*!
+ * Allocate and Initialize a box [\p lx, \p ly, \p ux, \p uy].
+ */
+static inline box2s *
+box2s_new(short lx, short ly, short ux, short uy)
+{
+  box2s * a  = (box2s*)malloc(sizeof(box2s));
+  box2s_set(a, lx, ly, ux, uy);
+  return a;
+}
+
+/*!
+ * Read \p box Dimensions.
+ */
+static inline void
+box2s_rdDim(const box2s * box, vec2s * dim)
+{
+  dim->x = box->u.x - box->l.x;
+  dim->y = box->u.y - box->l.y;
+}
+
+/*!
+ * Get \p box Area.
+ */
+static inline long
+box2s_getArea(const box2s * box)
+{
+  return (((long)box->u.x - (long)box->l.x) *
+	  ((long)box->u.y - (long)box->l.y));
+}
+
+/*!
+ * Return non-zero if a lies inclusively inside b.
+ */
+static inline int
+box2s_inside(const box2s * a, const box2s * b)
+{
+  return (b->l.x <= a->l.x && a->u.x <= b->u.x && /* covers along x */
+	  b->l.y <= a->l.y && a->u.y <= b->u.y); /* covers along y */
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+static inline int
+box2s_beside(const box2s * a, const box2s * b)
+{
+  return (a->u.x < b->l.x ||  // left of
+	  a->l.x > b->u.x ||  // right of
+	  a->u.y < b->l.y ||  // above
+	  a->l.y > b->u.y);   // below
+}
+
+static inline int
+box2s_beside_point(const box2s * a, const vec2s * b)
+{
+  return (a->u.x < b->x ||  // left of
+	  a->l.x > b->x ||  // right of
+	  a->u.y < b->y ||  // above
+	  a->l.y > b->y);   // below
+}
+
+static inline int
+box2s_overlap_box2f(const box2s * a, const box2s * b)
+{
+  return ! box2s_beside(a, b);
+}
+
+static inline int
+box2s_covers_point(const box2s * a, const vec2s * b)
+{
+  return ! box2s_beside_point(a, b);
+}
+
+static inline int
+box2s_covers(const box2s * a, const box2s * b)
+{
+  return box2s_inside(b, a);
+}
+
+/*!
+ * Unite \p a and \p b into \p c.
+ */
+static inline void
+box2s_unite(const box2s * a, const box2s * b, box2s * c)
+{
+  c->l.x = MIN2(a->l.x, b->l.x);
+  c->l.y = MIN2(a->l.y, b->l.y);
+  c->u.x = MAX2(a->u.x, b->u.x);
+  c->u.y = MAX2(a->u.y, b->u.y);
+}
+
+/*!
+ * Intersect \p a and \p b into \p c.
+ * \return non-zero if an intersection region with a non-zero area was found.
+ */
+static inline int
+box2s_intersect(const box2s * a, const box2s * b, box2s * c)
+{
+  if (! (a->u.x < b->l.x ||
+	 a->u.y < b->l.y ||
+	 b->u.x < a->l.x ||
+	 b->u.y < a->l.y)) {
+    c->l.x = MAX2(a->l.x, b->l.x);
+    c->l.y = MAX2(a->l.y, b->l.y);
+    c->u.x = MIN2(a->u.x, b->u.x);
+    c->u.y = MIN2(a->u.y, b->u.y);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+/*!
+ * Indexing of box \p a at \p i.
+ *
+ * \return edge i of box.
+ */
+static inline vec2s
+box2s_at(const box2s * a, int i)
+{
+  return (&a->l)[i];
+}
+
+static inline void
+box2s_fprint(FILE * stream, const box2s * a)
+{
+  fprintf(stream, "[[%5d,%5d],[%5d,%5d]]",
+	  a->l.x, a->l.y, a->u.x, a->u.y);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_box2s(const box2s * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2s(&a->l, chv);
+  ret += chv_enc_vec2s(&a->u, chv);
+  return ret;
+}
+
+static inline int
+chv_dec_box2s(box2s * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2s(&a->l, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2s(&a->u, chv)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

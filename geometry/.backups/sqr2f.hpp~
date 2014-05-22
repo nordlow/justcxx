@@ -1,0 +1,327 @@
+/*!
+ * \file sqr2f.hpp
+ * \brief Two-dimensional Square Box of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "box2f.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ========================================================================= */
+
+/*!
+ * Two-dimensional Square Box of floats.
+ */
+typedef struct
+{
+  vec2f c;			/**< Center. */
+  float r;			/**< Radius. */
+} sqr2f;
+
+/*!
+ * Set \p a to the square with center [\p cx, \p cy] and radius \p r.
+ */
+static inline void
+sqr2f_set(sqr2f * a, float cx, float cy, float r)
+{
+  a->c.x = cx;
+  a->c.y = cy;
+  a->r = r;
+}
+
+/*!
+ * Allocate and Initialize a square with center [\p cx, \p cy] and radius \p r.
+ */
+static inline sqr2f *
+sqr2f_new(float cx, float cy, float r)
+{
+  sqr2f * a = (sqr2f*)malloc(sizeof(sqr2f));
+  sqr2f_set(a, cx, cy, r);
+  return a;
+}
+
+/*!
+ * Set \p a's center to the point \p b and radius to zero.
+ */
+static inline void
+sqr2f_set_Point(sqr2f * a, const vec2f * b)
+{
+  a->c.x = b->x;
+  a->c.y = b->y;
+  a->r = 0;
+}
+
+/*!
+ * Set \p a to \p b.
+ */
+static inline void
+sqr2f_set_copy(sqr2f * a, const sqr2f * b)
+{
+  *a = *b;
+}
+
+/*!
+ * Read Square \p sqr Center into \p cen.
+ */
+static inline void
+sqr2f_rdCen(const sqr2f * sqr, vec2f * cen)
+{
+  cen->x = sqr->c.x;
+  cen->y = sqr->c.y;
+}
+
+/*!
+ * Read Inner Square of \p a scaled the factor \p f and put result in \p b.
+ */
+static inline void
+box2f_rdISqr_sqr2f(const box2f * a, float f, sqr2f * b)
+{
+  box2f_rdCen(a, &b->c);
+  vec2f dim; box2f_rdDim(a, &dim);
+  b->r = MIN2(dim.x, dim.y) / 2 * f;
+}
+
+/*!
+ * Get Square \p square Center along dimension \p i.
+ */
+static inline float
+sqr2f_getCeni(const sqr2f * sqr, int i)
+{
+  if (i == 0) {
+    return sqr->c.x;
+  } else {
+    return sqr->c.y;
+  }
+}
+
+/*!
+ * Read Square \p sqr Bounding Box into \p box.
+ */
+static inline void
+sqr2f_rdBnd_box2f(const sqr2f * sqr, box2f * box)
+{
+  box2f_setSqr(box, &sqr->c, sqr->r);
+}
+
+/*!
+ * Get Square \p sqr Inner Box into \p box.
+ */
+static inline box2f
+sqr2f_getIBox(const sqr2f * sqr)
+{
+  box2f box;
+  const float irad = sqr->r * M_SQRT2_2; /* inner = radius * 1/sqrt(2) */
+  box2f_setSqr(&box, &sqr->c, irad);
+  return box;
+}
+
+/*!
+ * Get Square \p sqr Area.
+ */
+static inline float
+sqr2f_getArea(const sqr2f * sqr)
+{
+  return 4 * SQR(sqr->r);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Return non-zero if \p a and \p b are equal.
+ */
+static inline int
+sqr2f_eq(const sqr2f * a, const sqr2f * b)
+{
+  return (vec2f_eq(&a->c, &b->c) &&
+	  a->r == b->r);
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Extend the radius of \p a the shift \p s.
+ */
+static inline void
+sqr2f_extend(sqr2f * a, const float s)
+{
+  a->r += s;
+}
+
+/*!
+ * Translate \p a the shift \p s and put the result in \p b.
+ */
+static inline void
+sqr2f_move(const sqr2f * a, const vec2f * s, sqr2f * b)
+{
+  vec2f_sum(&a->c, s, &b->c);
+}
+
+/*!
+ * Horizontally Translate \p a the shift sx and put the result in \p b.
+ */
+static inline void
+sqr2f_htransl(const sqr2f * a, float sx, sqr2f * b)
+{
+  b->c.x = a->c.x + sx;
+}
+
+/*!
+ * Vertically Translate \p a the shift sy and put the result in \p b.
+ */
+static inline void
+sqr2f_vtransl(const sqr2f * a, float sy, sqr2f * b)
+{
+  b->c.y = a->c.y + sy;
+}
+
+/*!
+ * Centered Scale \p a the factor \p f and put the result in \p b.
+ */
+static inline void
+sqr2f_cscale(const sqr2f * a, float f, sqr2f * b)
+{
+  b->r = a->r * f;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+/*!
+ * Resize \p sqr using the user (mouse) drag from \p mpos the shift \p mshift.
+ * \param[in] ctrlPM Control Point Mask to use.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+sqr2f_shiftCtrlP(sqr2f * sqr,
+		 const vec2f * mpos, const vec2f * mshift,
+		 const vec2f * mindim, const uint8_t * ctrlPM)
+{
+  int ret = 1;
+  if (ctrlPM) {
+    if (GET_BIT(*ctrlPM, 0)) {
+      if (mshift) { vec2f_add(&sqr->c, mshift); } /* center */
+    }
+    if (GET_BIT(*ctrlPM, 1)) {
+      vec2f pdir; vec2f_diff(&sqr->c, mpos, &pdir);
+      if (mshift) { sqr->r -= vec2f_dot(&pdir, mshift) / vec2f_norm2(&pdir); }
+    }
+  }
+  return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+sqr2f_beside_point(const sqr2f * a, const vec2f * b)
+{
+  return (vec2f_dimdistmax(&a->c, b) > a->r);
+}
+
+static inline int
+sqr2f_covers_point(const sqr2f * a, const vec2f * b)
+{
+  return ! sqr2f_beside_point(a, b);
+}
+
+/*!
+ * Return non-zero if \p a lies beside \p b.
+ */
+static inline int
+sqr2f_beside_box(const sqr2f * a, const box2f * b)
+{
+  PTEST("Function not verified\n");
+  const vec2f vtx[4] = { { b->l.x, b->l.y },
+			   { b->u.x, b->l.y },
+			   { b->u.x, b->u.y },
+			   { b->l.x, b->u.y } };
+  /* square beside all box-corners => lies beside the whole box */
+  return (!sqr2f_covers_point(a, &vtx[0]) &&
+	  !sqr2f_covers_point(a, &vtx[1]) &&
+	  !sqr2f_covers_point(a, &vtx[2]) &&
+	  !sqr2f_covers_point(a, &vtx[3]));
+}
+
+/*!
+ * Return non-zero if \p a overlaps \p b.
+ */
+static inline int
+sqr2f_overlap_box2f(const sqr2f * a, const box2f * b)
+{
+  PTEST("Function not verified\n");
+  return !sqr2f_beside_box(a, b);
+}
+
+/*!
+ * Return non-zero if \p a completely covers \p b.
+ */
+static inline int
+sqr2f_covers_box(const sqr2f * a, const box2f * b)
+{
+  PTEST("Function not verified\n");
+  const vec2f vtx[4] = { { b->l.x, b->l.y },
+			   { b->u.x, b->l.y },
+			   { b->u.x, b->u.y },
+			   { b->l.x, b->u.y } };
+  /* square covers all box-corners => covers the whole box */
+  return (sqr2f_covers_point(a, &vtx[0]) &&
+	  sqr2f_covers_point(a, &vtx[1]) &&
+	  sqr2f_covers_point(a, &vtx[2]) &&
+	  sqr2f_covers_point(a, &vtx[3]));
+}
+
+/*!
+ * Fit square \p sqr precisely Inside (Bounding) Box extents \p ext.
+ * \return 1 if extents were changed, -1 if type not supported, 0 otherwise.
+ */
+static inline int
+sqr2f_ifit_box2f(sqr2f * sqr, const box2f * ext)
+{
+  int ret = 1;
+  vec2f cen, dim; box2f_rdCenDim(ext, &cen, &dim);
+  const float min_dim = float_min2(dim.x, dim.y);
+  sqr2f_set(sqr, cen.x, cen.y, min_dim/2); /* use inner square */
+  return ret;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline void
+sqr2f_fprint(FILE * stream, const sqr2f * a)
+{
+  if (a) {
+    fprintf(stream, "[[%f,%f],%f]",
+	    a->c.x, a->c.y, a->r);
+  } else {
+    fprintf(stream, "(nil)");
+  }
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_sqr2f(const sqr2f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2f(&a->c, chv);
+  ret += chv_enc_f32be(chv, &a->r);
+  return ret;
+}
+
+static inline int
+chv_dec_sqr2f(sqr2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2f(&a->c, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_f32be(chv, &a->r)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+/* ========================================================================= */
+
+#ifdef __cplusplus
+}
+#endif

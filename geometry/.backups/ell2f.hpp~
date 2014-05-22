@@ -1,0 +1,69 @@
+/*!
+ * \file ell2f.hpp
+ * \brief Two-dimensional ellipse of floats.
+ * \author Copyright (C) 2006 Per Nordlöw (per.nordlow@gmail.com)
+ */
+
+#pragma once
+
+#include "vec2f.hpp"
+#include "box2f.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * Two-dimensional ellipse of floats.
+ */
+typedef box2f ell2f;
+
+static inline int
+ell2f_covers_point(const ell2f * a, float dirang,
+		   const vec2f * b, bool lin_flag)
+{
+  vec2f cen, rad; box2f_rdCenRad(a, &cen, &rad); /* ellipse center and radius */
+  const float irx = 1.0f / rad.x, iry = 1.0f / rad.y; /* inverses */
+  vec2f pos; vec2f_diff(b, &cen, &pos);
+  if (dirang != 0.0f) { vec2farray_rot(&pos, 1, NULL, dirang); } /* rotate */
+  if (lin_flag) {
+    return (ABS(pos.x*irx) + ABS(pos.y*iry) < 1);
+  } else {
+    return (SQR(pos.x*irx) + SQR(pos.y*iry) < 1);
+  }
+}
+
+/*!
+ * Get Ellipse Inner Box.
+ */
+static inline box2f
+ell2f_getIBox(const ell2f * ell)
+{
+  box2f box; 
+  box2f_cscale(ell, M_SQRT2_2, &box);
+  return box;
+}
+
+/* ---------------------------- Group Separator ---------------------------- */
+
+static inline int
+chv_enc_ell2f(const ell2f * a, chv_t * chv)
+{
+  int ret = 0;
+  ret += chv_enc_vec2f(&a->l, chv);
+  ret += chv_enc_vec2f(&a->u, chv);
+  return ret;
+}
+
+static inline int
+chv_dec_ell2f(ell2f * a, chv_t * chv)
+{
+  int cnt = 0, ret = 0;
+  if ((ret = chv_dec_vec2f(&a->l, chv)) >= 0) cnt += ret; else return ret;
+  if ((ret = chv_dec_vec2f(&a->u, chv)) >= 0) cnt += ret; else return ret;
+  return cnt;
+}
+
+#ifdef __cplusplus
+}
+#endif
