@@ -1,0 +1,821 @@
+include conf.mk
+
+# =============================================================================
+# Tests run by make check
+
+TESTS = t_code.out t_boost_endian.out t_boost_serialization.out t_boost_random.out	\
+t_geometry.out t_tuple_sort.out t_histogram.out						\
+t_ngram.out t_chash.out t_distances.out t_show.out	\
+t_vcs.out t_pathops.out t_semnet.out
+
+check: $(TESTS)
+
+# Verified targets
+OK_TARGETS = t_clang_rewrite.out t_opencv-video.out t_opencv-gpu.out t_aspell.out	\
+	      t_vips.out t_clang.out t_memoize.out t_stl.out	\
+	      t_tuple.out  t_tbb_primes.out					\
+	      t_tbb_mandelbrot.out t_ternary_tree.out											\
+	       t_aligned_vector.out t_median.out t_histogram.out t_bench.out t_bench2.out		\
+	       t_boost_random.out t_show.out												\
+	       t_boost_bimap.out t_boost_concept_requires.out							\
+	       t_boost_accumulators.out t_type_traits.out									\
+	       t_boost_smart_enum.out t_gzstream.out t_tm.out				\
+	       t_crm2enum.out t_glx.out t_glx_opengl3.out						\
+	       t_glfw.out t_printf.out t_fwrite.out									\
+	       t_realloc.out t_alz.out t_bitwise.out								\
+	       t_bitfield.out t_bitvec.out t_mq.out t_chv.out	\
+	       t_signal.out t_pcap1.out t_pcap3.out									\
+	       t_pthreads.out t_threadsafety.out t_timer.out				\
+	       t_kdt.out t_xdraw.out t_color.out t_qsort.out	\
+	       t_vcs.out t_xmmintrin.out t_pmmintrin.out						\
+	       t_chash.out t_hash.out t_udunits.out									\
+	       t_libmagic.out t_csc.out t_penrose_tiling.out				\
+	       t_libxml.out t_semnet.out t_dvis.out
+
+all: $(OK_TARGETS)
+	echo "Building targets @(OK_TARGETS)..."
+
+# =============================================================================
+
+# Test Programs
+TEST_C := $(wildcard tests/*.c)
+TEST_CPP := $(wildcard tests/*.cpp)
+TEST_SRCS := $(TEST_C) $(TEST_CPP)
+TEST_O := $(wildcard tests/*.o)
+
+# Common C stuff
+COMMON_H := $(wildcard *.h)
+COMMON_C := $(wildcard *.c)
+COMMON_HC := $(COMMON_H) $(COMMON_C)
+COMMON_O = $(patsubst %.c,%.o,$(COMMON_C))
+
+# Common C++ stuff
+COMMON_HPP := $(wildcard *.hpp)
+COMMON_CPP := $(wildcard *.cpp)
+COMMON_HCPP := $(COMMON_HPP) $(COMMON_CPP)
+
+# Geometry
+GEOMETRY_CPP := $(wildcard geometry/*.cpp)
+GEOMETRY_HPP := $(wildcard geometry/*.hpp)
+GEOMETRY_CODE := $(GEOMETRY_HPP) $(GEOMETRY_CPP)
+GEOMETRY_OBJS = $(patsubst %.cpp,%.o,$(GEOMETRY_CPP))
+
+# SemNet
+SEMNET_CPP := $(wildcard semnet/*.cpp)
+SEMNET_HPP := $(wildcard semnet/*.hpp)
+SEMNET_CODE := $(SEMNET_HPP) $(SEMNET_CPP)
+SEMNET_OBJS = $(patsubst %.cpp,%.o,$(SEMNET_CPP))
+SEMNET_LIB = libSemNet.a
+
+# DVis
+DVIS_CPP := $(wildcard dvis/*.cpp)
+DVIS_HPP := $(wildcard dvis/*.hpp)
+DVIS_CODE := $(DVIS_HPP) $(DVIS_CPP)
+DVIS_OBJS = $(patsubst %.cpp,%.o,$(DVIS_CPP))
+DVIS_LIB = libDVIS.a
+
+# X11 Headers
+SYS_H = /usr/include/X11/*.h \
+	/usr/include/X11/*/*.h \
+	/usr/include/X11/*/*/*.h
+X11_COBJS = ximg.o xplots.o xwin.o xdraw.o
+
+# GHT Hash
+GHT_HASH_C = libghthash/src/hash_functions.c libghthash/src/hash_table.c
+GHT_HASH_O = $(patsubst %.c,%.o,$(GHT_HASH_C))
+
+# =============================================================================
+# Libraries
+
+tbb:
+	make -C tbb
+
+.PHONY: $(SEMNET_LIB) $(DVIS_LIB) tests tbb
+
+tests: $(OK_TESTS)
+
+doc: dox
+dox:
+		passert doxygen
+		doxygen
+
+# =============================================================================
+# GCC AST Plugin
+
+gcc-ast.so: GNUmakefile gcc-ast.cpp
+	$(CXX) -I`$(CXX) -print-file-name=plugin`/include -Wall -fPIC -shared gcc-ast.cpp -o gcc-ast.so
+gcc-ast-test: GNUmakefile gcc-ast.so
+	$(CXX) -S -fplugin=./gcc-ast.so gcc-ast-test.cpp
+
+# =============================================================================
+
+# Semnet
+$(SEMNET_LIB): $(SEMNET_OBJS)
+	@echo "*** $(AR_VERB)" $@
+	@ar cru $(SEMNET_LIB) $(SEMNET_OBJS)
+SEMNET_HELPER_OBJS = $(GHT_HASH_O) timing.o aesc.o pathops.o readline_utils.o		\
+	  stdio_x.o qsort.o qsort_mt.o statutils.o inotify_utils.o magicDB.o bitvec.o	\
+	 phash.o CHash.o fkind.o string_x.o vcs.o ioredirect.o ffmpeg_x.o udunits.o
+t_semnet.out: conf.mk GNUmakefile semnet/main.o $(SEMNET_LIB) $(SEMNET_HELPER_OBJS)
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ semnet/main.o $(SEMNET_HELPER_OBJS) $(SEMNET_LIB) \
+	-lrt -lm $(NETTLE_LIBS) $(OPENCV_LIBS) -lmagic -lavformat -lavcodec -lfreeimage -ludunits2 -lcrypto -lboost_thread-mt -lboost_iostreams-mt -lboost_filesystem-mt -lboost_system-mt -lboost_serialization-mt
+
+# =============================================================================
+
+# DVIS
+$(DVIS_LIB): $(DVIS_OBJS)
+	@echo "*** $(AR_VERB)" $@
+	@ar cru $(DVIS_LIB) $(DVIS_OBJS)
+
+# $(X11_COBJS) $(DVIS_LIB)
+t_dvis.out: conf.mk GNUmakefile t_dvis.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) $(WX_CFLAGS) $(GLEW_CFLAGS) -I GL -I ../oglplus/include -o $@ t_dvis.cpp $(WX_LIBS) $(GLEW_LIBS) $(GL_LIBS) -lwx_gtk2u_gl-2.9
+
+t_oglplus_glut.out: conf.mk GNUmakefile t_oglplus_glut.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) $(GLUT_CFLAGS) $(GLEW_CFLAGS) -I GL -I ../oglplus/include -o $@ t_oglplus_glut.cpp $(GLEW_LIBS) $(GLUT_LIBS) $(GL_LIBS)
+
+# Test Programs
+
+t_tm.out: conf.mk GNUmakefile t_tm.o utils.o timing.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_tm.o \
+	utils.o timing.o -lrt -lreadline
+
+t_crm2enum.out: conf.mk GNUmakefile t_crm2enum.o utils.o reorg.o perm.o crm2enum.o timing.o binlog.o qsort.o aesc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_crm2enum.o utils.o reorg.o perm.o binlog.o crm2enum.o timing.o qsort.o aesc.o \
+	-lrt
+
+t_glx.out: conf.mk GNUmakefile t_glx.o
+	@echo "*** $(LD_VERB)" $@
+	$(CCMAIN) $(GL_CFLAGS) $(GL_LIBS) $(X11_LIBS) -o $@ t_glx.o
+
+t_glx_opengl3.out: conf.mk GNUmakefile t_glx_opengl3.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) $(GL_CFLAGS) $(GL_LIBS) $(X11_LIBS) -o $@ t_glx_opengl3.o
+
+t_glfw.out: conf.mk GNUmakefile t_glfw.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) $(GLFW_CFLAGS) $(GLFW_LIBS) -o $@ t_glfw.o
+
+t_printf.out: conf.mk GNUmakefile t_printf.o utils.o timing.o stdio_x.o pathops.o xstr.o aesc.o extremes.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_printf.o utils.o timing.o stdio_x.o pathops.o xstr.o aesc.o extremes.o -lrt
+
+t_xmmintrin.out: conf.mk GNUmakefile t_xmmintrin.o timing.o
+	@echo "*** building" t_xmmintrin
+	@$(CCMAIN) -o $@ -march=pentium3 -mfpmath=sse -funroll-loops \
+	t_xmmintrin.o timing.o -lrt
+
+t_pmmintrin.out: conf.mk GNUmakefile
+	@echo "*** building" t_pmmintrin
+	@$(CCMAIN) -march=pentium4 -msse3 -mfpmath=sse -funroll-loops \
+	t_pmmintrin.o -o $@ timing.o -lrt
+
+t_fwrite.out: conf.mk GNUmakefile t_fwrite.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_fwrite.o -o $@
+
+t_realloc.out: conf.mk GNUmakefile t_realloc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_realloc.o
+
+t_alz.out: conf.mk GNUmakefile utils.o linfilt.o a3d.o alz3d.o timing.o aesc.o stdio_x.o dot.o pathops.o xstr.o t_alz.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_alz.o -o $@ \
+	utils.o a3d.o linfilt.o alz3d.o timing.o aesc.o stdio_x.o dot.o pathops.o xstr.o -lrt
+
+t_mq.out: conf.mk GNUmakefile t_mq.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_mq.o -o $@ -lrt
+
+t_signal.out: conf.mk GNUmakefile t_signal.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_signal.o
+
+t_pcap1.out: conf.mk GNUmakefile t_pcap1.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_pcap1.o -lpcap
+
+t_pcap3.out: conf.mk GNUmakefile t_pcap3.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_pcap3.o -lpcap
+
+t_pthreads.out: conf.mk GNUmakefile t_pthreads.o timing.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_pthreads.o \
+	timing.o \
+	-lrt
+
+t_threadsafety.out: conf.mk GNUmakefile t_threadsafety.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I boost-extras -o $@ t_threadsafety.o -lboost_thread-mt -lboost_iostreams-mt -lboost_serialization-mt
+
+t_timer.out: conf.mk GNUmakefile t_timer.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_timer.o -o $@
+
+t_kdtree.out: conf.mk GNUmakefile t_kdtree.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_kdtree.o \
+	-o $@
+
+t_geometry.out: conf.mk GNUmakefile t_geometry.o geometry/box.o geometry/layout.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I. t_geometry.o geometry/box.o geometry/layout.o \
+	-o $@
+
+t_kdt.out: conf.mk GNUmakefile utils.o geometry/vec2f.o geometry/box2f.o geometry/poly2f.o geometry/rbox2f.o vis.o kdTree.o t_kdt.o timing.o chv.o ptrarray_grid.o aesc.o SFILL_enum.o color.o qsort_mt.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_kdt.o -o $@ \
+	utils.o geometry/vec2f.o geometry/box2f.o geometry/poly2f.o geometry/rbox2f.o vis.o chv.o aesc.o SFILL_enum.o color.o \
+	timing.o kdTree.o ptrarray_grid.o qsort_mt.o \
+	-lrt
+
+t_bitwise.out: conf.mk GNUmakefile t_bitwise.o bitwise.o utils.o aesc.o binlog.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_bitwise.o \
+	bitwise.o utils.o aesc.o binlog.o
+
+t_bitvec.out: conf.mk GNUmakefile t_bitvec.o bitvec.o utils.o aesc.o binlog.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_bitvec.o \
+	bitvec.o utils.o aesc.o binlog.o
+
+t_chv.out: conf.mk GNUmakefile t_chv.o chv.o chv_gmp.o utils.o aesc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_chv.o \
+	chv.o chv_gmp.o utils.o aesc.o -lgmp
+
+t_xdraw.out: conf.mk GNUmakefile t_xdraw.o $(X11_COBJS) aesc.o timing.o pixels.o utils.o stdio_x.o bitvec.o pnmio.o fft.o endian_utils.o color.o pathops.o xstr.o chv.o bitwise.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_xdraw.o \
+	$(X11_COBJS) aesc.o timing.o pixels.o utils.o stdio_x.o bitvec.o pnmio.o fft.o endian_utils.o color.o pathops.o xstr.o chv.o bitwise.o \
+	$(X11_LIBS) -lrt
+
+t_color.out: conf.mk GNUmakefile t_color.o color.o utils.o chv.o aesc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_color.o \
+	color.o utils.o chv.o aesc.o
+
+t_qsort.out: conf.mk GNUmakefile t_qsort.o msort.o qsort.o qsort_mt.o reorg.o utils.o timing.o aesc.o binlog.o perm.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -fopenmp -march=native -o $@ t_qsort.o \
+	msort.o qsort.o qsort_mt.o reorg.o utils.o timing.o aesc.o binlog.o perm.o -lrt
+
+t_vcs.out: conf.mk GNUmakefile t_vcs.o ioredirect.o vcs.o timing.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_vcs.o \
+	ioredirect.o vcs.o timing.o -lrt -lboost_filesystem-mt -lboost_system-mt
+
+# =============================================================================
+
+t_vorbis.out: conf.mk GNUmakefile utils.o t_vorbis.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) utils.o t_vorbis.o -logg -lvorbisenc -lvorbisfile -o $@
+
+t_gtk.out: conf.mk GNUmakefile utils.o t_gtk.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) utils.o t_gtk.o -o $@
+
+t_gtkmm-tree.out: conf.mk GNUmakefile treeview_withpopup.o examplewindow.o t_gtkmm-tree.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) treeview_withpopup.o examplewindow.o t_gtkmm-tree.o -o $@ $(GTKMM_LIBS)
+
+t_gst.out: conf.mk GNUmakefile utils.o t_gst.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) utils.o t_gst.o -o $@
+
+t_jpeg.out: conf.mk GNUmakefile t_jpeg.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_jpeg.o
+
+t_tiff.out: conf.mk GNUmakefile t_tiff.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -ltiff -o $@ t_tiff.o
+
+t_libmagic.out: conf.mk GNUmakefile t_libmagic.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -lmagic -o $@ t_libmagic.o
+
+t_libxml.out: conf.mk GNUmakefile t_libxml.c stdio_x.o pathops.o xstr.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) $(XML_CFLAGS) $(XML_LIBS) -o $@ t_libxml.c stdio_x.o pathops.o xstr.o
+
+t_acronyms.out: conf.mk GNUmakefile t_acronyms.o utils.o acronyms.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_acronyms.o \
+	utils.o acronyms.o
+
+t_wav.out: conf.mk GNUmakefile t_wav.o wavfile.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_wav.o \
+	wavfile.o
+
+t_polyval.out: conf.mk GNUmakefile t_polyval.o utils.o polyval.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_polyval.o \
+	utils.o polyval.o
+
+# =============================================================================
+
+.PHONY: tests/pvtrace
+
+tests/pvtrace:
+	make -f GNUmakefile -C pvtrace instrument.o
+
+# =============================================================================
+
+t_dga.out: conf.mk GNUmakefile t_dga.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_dga.o -lXxf86dga
+
+t_audio.out: conf.mk GNUmakefile t_audio.o $(STD_COBJS) $(X11_COBJS) OSSio.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_audio.o \
+	$(STD_COBJS) $(X11_COBJS) OSSio.o
+
+t_alsa.out: conf.mk GNUmakefile t_alsa.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_alsa.o -lasound
+
+t_alsa_pcm.out: conf.mk GNUmakefile t_alsa_pcm.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_alsa_pcm.o -lasound
+
+t_updechoer.out: conf.mk GNUmakefile t_udpechoer.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_udpechoer.o
+
+# =============================================================================
+
+t_md5.out: conf.mk GNUmakefile t_md5.o md5.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_md5.o \
+	md5.o
+
+t_gjsolve.out: conf.mk GNUmakefile t_gjsolve.o utils.o inv.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_gjsolve.o \
+	utils.o inv.o
+
+t_sdl.out: conf.mk GNUmakefile t_sdl.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -lGL -lSDL -o $@ t_sdl.o
+
+t_CMF.out: conf.mk GNUmakefile t_CMF.o tvasp/BipV.o tvasp/CMF.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_CMF.o \
+	tvasp/BipV.o tvasp/CMF.o
+
+t_pathops.out: conf.mk GNUmakefile t_pathops.o pathops.o utils.o timing.o xstr.o aesc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_pathops.o \
+	pathops.o utils.o timing.o xstr.o aesc.o -lrt -lboost_filesystem-mt -lboost_system-mt
+
+# =============================================================================
+
+t_match.out: conf.mk GNUmakefile t_match.o LineReader.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_match.o LineReader.o -o $@
+
+# =============================================================================
+
+t_server.out: conf.mk GNUmakefile t_server.o sockets.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_server.o sockets.o -o $@
+
+t_client.out: conf.mk GNUmakefile t_client.o sockets.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_client.o sockets.o -o $@
+
+# =============================================================================
+
+t_crossover.out: conf.mk GNUmakefile t_crossover.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_crossover.o -o $@
+
+t_sample.out: conf.mk GNUmakefile t_sample.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_sample.o -o $@
+
+t_code.out: conf.mk GNUmakefile t_code.o aesc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_code.o aesc.o -o $@
+
+t_copy.out: conf.mk GNUmakefile t_copy.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_copy.o -o $@
+
+t_matrix.out: conf.mk GNUmakefile t_matrix.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_matrix.o -o $@
+
+t_randperm.out: conf.mk GNUmakefile t_randperm.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_randperm.o -o $@
+
+t_bit_matrix.out: conf.mk GNUmakefile t_bit_matrix.o bit_matrix.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_bit_matrix.o bit_matrix.o -o $@
+
+t_memoize.out: conf.mk GNUmakefile t_memoize.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_memoize.o -o $@
+
+t_aspell.out: conf.mk GNUmakefile t_aspell.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_aspell.o -o $@ -laspell
+
+t_vips.out: conf.mk GNUmakefile t_vips.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_vips.o -o $@ -lvips -lvipsCC
+
+t_clang.out: conf.mk GNUmakefile t_clang.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_clang.o -o $@ -lclang
+
+t_clang_rewrite.out: conf.mk GNUmakefile t_clang_rewrite.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(CLANG_BUILD_FLAGS) $(CLANG_LIBS) $(LLVM_CXXFLAGS) $(LLVM_LDFLAGS) $(LLVM_LIBS) t_clang_rewrite.cpp -o $@
+
+t_stl.out: conf.mk GNUmakefile t_stl.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_stl.o -o $@
+
+t_tuple.out: conf.mk GNUmakefile t_tuple.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_tuple.o -o $@
+
+t_tbb_primes.out: conf.mk GNUmakefile t_tbb_primes.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_tbb_primes.o -o $@ -ltbb -lrt # -I tbb/include -L tbb/build/release
+
+t_distances.out: conf.mk GNUmakefile t_distances.o timing.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_distances.o -o $@ timing.o -lrt
+
+t_tbb_mandelbrot.out: conf.mk GNUmakefile t_tbb_mandelbrot.o tbb_video.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_tbb_mandelbrot.o tbb_video.o -o $@ -ltbb -lrt $(X11_LIBS) # -I tbb/include -L tbb/build/release
+
+t_aligned_vector.out: conf.mk GNUmakefile aligned_vector.hpp t_aligned_vector.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_aligned_vector.o -o $@
+
+t_ternary_tree.out: conf.mk GNUmakefile t_ternary_tree.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_ternary_tree.o -o $@
+
+t_boost_smart_enum.out: conf.mk GNUmakefile t_boost_smart_enum.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_smart_enum.o -o $@
+
+t_boost_serialization.out: conf.mk GNUmakefile t_boost_serialization.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_serialization.o -o $@ -lboost_serialization-mt
+
+t_boost_endian.out: conf.mk GNUmakefile t_boost_endian.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I boost-endian t_boost_endian.cpp -o $@
+
+t_type_traits.out: conf.mk GNUmakefile t_type_traits.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_type_traits.o -o $@
+
+t_boost_concept_requires.out: conf.mk GNUmakefile t_boost_concept_requires.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_concept_requires.o -o $@
+
+t_boost_accumulators.out: conf.mk GNUmakefile t_boost_accumulators.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_accumulators.o -o $@
+
+t_boost_bimap.out: conf.mk GNUmakefile t_boost_bimap.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_bimap.o -o $@
+
+t_boost_random.out: conf.mk GNUmakefile t_boost_random.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_random.o -o $@
+
+t_show.out: conf.mk GNUmakefile t_show.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_show.o -o $@
+
+t_median.out: conf.mk GNUmakefile t_median.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_median.o -o $@
+
+t_histogram.out: conf.mk GNUmakefile t_histogram.o timing.o ioredirect.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_histogram.o timing.o ioredirect.o -o $@
+
+t_bench.out: conf.mk GNUmakefile t_bench.o timing.o ioredirect.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_bench.o timing.o ioredirect.o -lrt -lboost_system-mt -o $@
+
+t_bench2.out: conf.mk GNUmakefile t_bench2.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_bench2.o -lrt -lboost_system-mt -o $@
+
+t_ngram.out: conf.mk GNUmakefile t_ngram.o timing.o ioredirect.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_ngram.o timing.o ioredirect.o -lrt -lboost_system-mt -o $@
+
+t_gzstream.out: conf.mk GNUmakefile t_gzstream.o gzstream.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_gzstream.o gzstream.o -lz -o $@
+
+t_bitfield.out: conf.mk GNUmakefile t_bitfield.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_bitfield.o -o $@
+
+t_byte.out: conf.mk GNUmakefile t_byte.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_byte.o -o $@
+
+t_operators.out: conf.mk GNUmakefile t_operators.o
+	@echo "*** $(LD_VERB)" s.o to $@
+	@$(CXXMAIN) t_operators.o -o $@
+
+t_gridfit.out: conf.mk GNUmakefile t_gridfit.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_gridfit.o -o $@
+
+t_rot2tab.out: conf.mk GNUmakefile t_rot2tab.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_rot2tab.o -o $@
+
+t_unpack.out: conf.mk GNUmakefile t_unpack.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_unpack.o -o $@
+
+t_sstream.out: conf.mk GNUmakefile t_sstream.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_sstream.o -o $@
+
+t_mul.out: conf.mk GNUmakefile utils.o transpose.o mul.o timing.o t_mul.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_mul.o -o $@ \
+	utils.o transpose.o mul.o timing.o
+
+t_lisect.out: conf.mk GNUmakefile t_lisect.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) t_lisect.o -o $@
+
+t_pow.out: conf.mk GNUmakefile t_pow.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_pow.o -o $@
+
+t_ackermann.out: conf.mk GNUmakefile t_ackermann.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_ackermann.o -o $@
+
+t_lnnorm.out: conf.mk GNUmakefile t_lnnorm.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_lnnorm.o -o $@
+
+t_suicide.out: conf.mk GNUmakefile t_suicide.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_suicide.o -o $@
+
+t_linfilt.out: conf.mk GNUmakefile utils.o linfilt.o t_linfilt.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) utils.o linfilt.o t_linfilt.o -o $@
+
+t_linterpol.out: conf.mk GNUmakefile t_linterpol.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_linterpol.o -o $@
+
+t_limits.out: conf.mk GNUmakefile t_limits.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_limits.o -o $@
+
+t_date.out: conf.mk GNUmakefile t_date.o Date.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) Date.o t_date.o -o $@
+
+t_gp.out: conf.mk GNUmakefile gp/gp.o t_gp.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_gp.o -I gp -o $@
+
+t_sigmoids.out: conf.mk GNUmakefile t_sigmoids.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_sigmoids.o -o $@
+
+t_boost_array.out: conf.mk GNUmakefile t_boost_array.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_boost_array.o \
+	-o $@
+
+# NOTE: Remove libatlas-dev for this to work.
+t_armadillo.out: conf.mk GNUmakefile t_armadillo.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I$(HOME)/alt/include -L$(HOME)/alt/lib64 -L$(HOME)/alt/lib t_armadillo.cpp -larmadillo \
+	-o $@
+t_poly.out: conf.mk GNUmakefile t_poly.cpp poly.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I$(HOME)/alt/include -L$(HOME)/alt/lib64 -L$(HOME)/alt/lib t_poly.cpp poly.o -larmadillo \
+	-o $@
+
+t_outer_sphere.out: conf.mk GNUmakefile t_outer_sphere.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_outer_sphere.cpp \
+	-o $@
+
+t_eigen.out: conf.mk GNUmakefile t_eigen.cpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -I$(HOME)/alt/include -L$(HOME)/alt/lib64 -L$(HOME)/alt/lib t_eigen.cpp ${EIGEN3_CFLAGS} ${EIGEN3_LIBS} \
+	-o $@
+
+t_unite.out: conf.mk GNUmakefile \
+	t_unite.o box.hpp unite.hpp show.hpp elementwise.hpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_unite.o -o $@
+
+t_timefmt.out: conf.mk GNUmakefile t_timefmt.o timefmt.hpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_timefmt.o -o $@
+
+t_convolve.out: conf.mk GNUmakefile t_convolve.o convolve.hpp
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_convolve.o -o $@
+
+t_humanefind.out: conf.mk GNUmakefile t_humanefind.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_humanefind.o -o $@
+
+t_bits.out: conf.mk GNUmakefile t_bits.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_bits.o -o $@
+
+t_intersect.out: conf.mk GNUmakefile t_intersect.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_intersect.o -o $@
+
+t_pixels.out: conf.mk GNUmakefile t_pixels.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_pixels.o -o $@
+
+t_fixq.out: conf.mk GNUmakefile t_fixq.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_fixq.o -o $@
+
+t_linereader.out: conf.mk GNUmakefile t_linereader.o LineReader.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_linereader.o LineReader.o -o $@
+
+t_roi.out: conf.mk GNUmakefile t_roi.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_roi.o -o $@
+
+t_ufferandom.out: conf.mk GNUmakefile t_ufferandom.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_ufferandom.o -o $@
+
+t_gec.out: conf.mk GNUmakefile gec/gec.o t_gec.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) t_gec.o \
+	-I gec -L/usr/X11R6/lib $(X11_LIBS) -o $@
+
+t_hash.out: conf.mk GNUmakefile t_hash.o
+	@echo "*** $(CXX_VERB)" t_hash.o to $@
+	@$(CXXMAIN) -Wno-deprecated $(SPARSEHASH_CFLAGS) t_hash.o \
+	$(SPARSEHASH_LIBS) -o $@
+
+t_chash.out: conf.mk GNUmakefile t_chash.o timing.o stdio_x.o pathops.o
+	@echo "*** $(CXX_VERB)" t_chash.o to $@
+	@$(CXXMAIN) -Wno-deprecated t_chash.o timing.o stdio_x.o pathops.o \
+	-o $@ -lrt -lnettle -lcrypto
+
+# force compilation
+
+t_tracer.out: conf.mk GNUmakefile tracer_objs \
+	jpgio.o pixels.o xwin.o utils.o ximg.o \
+	t_tracer.o
+
+	@echo making $@...
+
+	@$(CXXMAIN) t_tracer.o \
+	jpgio.o pixels.o xwin.o utils.o ximg.o \
+	tracer/tracer.o \
+	-I tracer \
+	-o $@
+
+t_emerger.out: conf.mk GNUmakefile t_emerger.o \
+	emerger.o color.o \
+	 xwin.o xplots.o xdraw.o fft.o bitvec.o pixels.o utils.o timing.o
+	@$(CXXMAIN) \
+	emerger.o color.o \
+	 xwin.o xplots.o xdraw.o fft.o bitvec.o pixels.o utils.o timing.o \
+	t_emerger.o -o $@
+
+t_udunits.out: conf.mk GNUmakefile udunits.o t_udunits.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_udunits.o udunits.o -ludunits2
+
+t_csc.out: conf.mk GNUmakefile t_csc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_csc.o
+
+t_vlc.out: conf.mk GNUmakefile t_vlc.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_vlc.o -lvlc -lSDL_image -lSDL -lGLEW -lGL
+
+t_penrose_tiling.out: conf.mk GNUmakefile t_penrose_tiling.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) -o $@ t_penrose_tiling.o -lGL -lGLU -lglut
+
+t_opencv-video.out: conf.mk GNUmakefile t_opencv-video.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) $(OPENCV_CFLAGS) -o $@ t_opencv-video.o $(OPENCV_LIBS)
+
+t_opencv-gpu.out: conf.mk GNUmakefile t_opencv-gpu.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CXXMAIN) $(OPENCV_CFLAGS) -o $@ t_opencv-gpu.o $(OPENCV_LIBS) $(OPENCV_GPU_LIBS)
+
+# @TODO: Detect these with pkg-config!
+OCTAVE_INCLUDE_PATH=/usr/include/octave-3.2.3
+OCTAVE_LIB_PATH=/usr/lib/octave-3.2.3
+
+t_octave.o: t_octave.cpp
+	@$(CXXOBJ) -I $(OCTAVE_INCLUDE_PATH) $< -o $@
+
+t_octave.out: conf.mk GNUmakefile t_octave.o
+	@echo "*** $(LD_VERB)" $@
+	@$(CCMAIN) -o $@ t_octave.o  -L $(OCTAVE_LIB_PATH) -loctave -loctinterp
+
+# =============================================================================
+# Tags
+
+TAGS_FILES = *GNUmakefile* *.mk SConstruct *.[hcd] *.[hc]pp CL/*.[hc] CL/*.[hc]pp $(DVIS_CODE) $(TEST_SRCS) geometry/*.[hc]pp tracer/*.[hc]pp tvasp/*.[hc] $(SEMNET_CODE)
+
+# Languages supported by Exuberant Ctags
+ECTAGS_LANGS = C,C++,C#,Java,Asm,Lisp,VHDL,Verilog,MatLab,Ruby,Make,Lua,Sh,HTML,TeX
+
+# Produce Emacs Style "TAGS" file using Exuberant Ctags
+ctags:
+	@ctags-exuberant -e --sort=yes --links=no --excmd=number --languages=$(ECTAGS_LANGS) --extra=+f --file-scope=yes --fields=afikmsSt $(TAGS_FILES) > /dev/null
+
+# Produce Vi-style (Extended) "tags" file using Exuberant Ctags
+ectags:
+	@ctags-exuberant --sort=yes --links=no --excmd=number --languages=$(ECTAGS_LANGS) --extra=+f --file-scope=yes --fields=afikmsSt $(TAGS_FILES) > /dev/null
+ctags-vi-style: ectags
+
+idutils:
+	@mkid
+
+# GNU GLOBAL Tags
+gtags:
+	@gtags
+gtags-update:
+	@global -vu
+global:
+	@global -u
+
+# Emacs EBrowse
+browse:
+	@ebrowse
+
+# Default Tags
+tags: ectags ctags gtags
+
+# All Tags
+all-tags: ctags ectags idutils gtags browse
+
+# =============================================================================
+# Dependencies
+
+deps:
+	sudo apt-get install --assume-yes build-essential autoconf automake scons g++ ctags global doxygen graphviz bison flex ccache cmake fakeroot swig valgrind file libconfig8-dev libconfig8-dev libconfig++8-dev nettle-dev libx264-dev libudunits2-dev libfreeimage-dev libltdl-dev  libgtk2.0-dev libx11-dev libfreetype6-dev liboil0.3-dev libgstreamer0.10-dev libopenjpeg-dev libcrypto++-dev libcrypto++-doc libmagic-dev libpcap0.8-dev libpcapnav0-dev libgpod-dev libgpod-doc libglew1.5-dev libglewmx1.5-dev libglfw-dev libgle3-dev libopenvg1-mesa-dev libpixman-1-dev libirrlicht-dev libwebkitgtk-dev libsigc++-2.0-dev libsigc++-2.0-doc libglibmm-2.4-dev libglibmm-2.4-doc libxml2-dev libarchive-dev libssl-dev freeglut-dev libflann-dev flann-doc libopenblas-dev;
+	~/bin/pget_libs;
+	~/bin/pget_autoconf-archive;
+	~/bin/pget_gnu;
+	~/bin/pget_3dengines;
+	~/bin/pget_spell;
+	~/bin/pget_compression;
+	~/bin/pget_festival;
+pbuild-deps:
+	$(HOME)/pnw/scripts/install_pbuild-deps
+
+# =============================================================================
+# Clean
+
+# WARNING: Be careful with this target. Do NOT remove any tildes here.
+clean-sources:
+	@echo "*** $(CLEAN_VERB)"
+	@$(RM) tests/*.o tests/core tests/vgcore.* *.o core core.* vgcore.* gmon.out gmon*.txt *.gprof *.zob \
+	$(SEMNET_OBJS) $(SEMNET_LIB) \
+	$(DVIS_OBJS) $(DVIS_LIB) \
+	$(OK_TARGETS) $(C_DEPS) \
+	build/*/*.o
+clean-tags:
+	$(RM) tags TAGS BROWSE GPATH GRTAGS GSYMS GTAGS
+clean-libghthash:
+	make -C libghthash clean;
+clean: clean-sources clean-libghthash
+clean-all: clean-sources clean-libghthash clean-tags

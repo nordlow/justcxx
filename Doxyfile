@@ -1,0 +1,70 @@
+PROJECT_NAME     = PNW
+#PROJECT_ICON =
+#PROJECT_BRIEF =
+OUTPUT_DIRECTORY = ../cognia-doc
+INCLUDE_PATH = /usr/include /usr/include/linux
+
+FILE_PATTERNS    = *.hpp *.h *.cpp *.c *.hh *.cc
+#FILTER_PATTERNS = 
+#FILTER_SOURCE_PATTERNS =
+#INPUT_FILTER =
+INPUT            = . geometry semnet dvis deps/nedtries/nedtrie.h
+EXCLUDE = boost-extras GL tracer libhashish jocke-google-maps ffmpegxx adventures_in_opencl dvis-test-tree dSFMT* fftw++ FIFOS GL GLSW gef gpc* gzstream hdf5 kdtree lcs libghthash* opreports mlab MurmurHash opengl-yuv-video zui wavelet-packet xstream-0.0.3 unmaintained
+EXCLUDE_PATTERNS = .git .svn .hg .bzr _darcs CVS threadpool* libghthash*
+RECURSIVE        = NO
+
+SEARCH_INCLUDES  = YES
+FULL_PATH_NAMES  = NO
+INLINE_SOURCES   = NO
+SOURCE_BROWSER   = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION = YES
+
+#ENABLE_PREPROCESSING = YES
+
+#JAVADOC_AUTOBRIEF = YES
+
+# Enable this to produce graphical stuff with Graphviz's layouter dot.
+HAVE_DOT = YES
+DOT_IMAGE_FORMAT = svg
+
+# Graphical Stuff
+GRAPHICAL_HIERARCHY = YES
+CLASS_GRAPH = YES
+INCLUDE_GRAPH = YES
+COLLABORATION_GRAPH = YES
+CALL_GRAPH = YES
+CALLER_GRAPH = YES
+DIRECTORY_GRAPH = YES
+
+TEMPLATE_RELATIONS = YES
+INCLUDED_BY_GRAPH = YES
+CLASS_DIAGRAMS = YES
+
+MACRO_EXPANSION = YES
+EXPAND_ONLY_PREDEF = YES
+
+# TODO: Relate to cc_features.h
+EXPAND_AS_DEFINED = NAMESPACE_BEGIN NAMESPACE_END
+
+#GENERATE_MAN = YES
+#GENERATE_RTF = YES
+#GENERATE_HTMLHELP = YES
+
+EXCLUDE_SYMLINKS = YES
+
+# See: http://stackoverflow.com/questions/537043/custom-tags-with-doxygen
+# See: http://www.stack.nl/~dimitri/doxygen/commands.html#cmdxrefitem
+# See: http://www.virtualbox.org/svn/vbox/trunk/Doxyfile.Core
+ALIASES += "req=\xrefitem req \"Requirement\" \"Requirements\" "
+ALIASES += "reminder=\xrefitem reminders \"Reminder\" \"Reminders\"" 
+# The documented code like this
+# /// \req #42 - The system shall work in any situation.
+# /// \reminder #1 - This is the first reminder.
+
+QUIET = NO
+WARNINGS = YES
+WARN_IF_UNDOCUMENTED = YES
+WARN_IF_DOC_ERROR = YES
+WARN_FORMAT = "$file:$line: $text"
+WARN_LOGFILE = doxygen-error-log.txt
