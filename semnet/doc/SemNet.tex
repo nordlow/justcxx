@@ -1,0 +1,920 @@
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
+
+\documentclass[a4paper,10pt,twocolumn]{article}
+
+% \usepackage{multicol}          %multicols or multicol?
+
+% Page Layout
+% See: http://amath.colorado.edu/documentation/LaTeX/reference/layout.html
+
+% @TODO: Use \url instead of \href when no text is available.
+
+% multicolumn becomes more readable with smaller margins
+\usepackage[cm]{fullpage}       %set all margins to be 1cm
+% \addtolength{\textwidth}{5cm}
+% \addtolength{\hoffset}{-2.5cm}
+% \addtolength{\textheight}{5cm}
+% \addtolength{\voffset}{-2.5cm}
+
+\usepackage[utf8]{inputenc}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{keystroke}
+\usepackage{hyperref}
+\usepackage{underscore}
+
+% Listings ====================================================================
+\usepackage{listings}           %for code listings
+\newcommand{\codeC}[1]{\lstset{language=C}\lstinline!#1!}
+\newcommand{\codeCVar}[1]{\lstset{language=C}\lstinline!#1!}
+\newcommand{\codeCFun}[1]{\lstset{language=C}\lstinline!#1!}
+\newcommand{\codeCxx}[1]{\lstset{language=C++}\lstinline!#1!}
+\newcommand{\codeCxxClass}[1]{\lstset{language=C++}\lstinline!#1!}
+\newcommand{\codeREL}[1]{\lstset{language=C++}\lstinline!REL_#1!}
+\newcommand{\codeHaskell}[1]{\lstset{language=Haskell}\lstinline!#1!}
+\lstset{
+  frame=tb,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=true,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle={\bf\color{Purple1}},
+  commentstyle={\it\color{Firebrick4}},
+  stringstyle=\color{VioletRed4},
+  frame=single,
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=8
+}
+
+% New Commands
+% Wikimedia is the default argument
+\newcommand{\testcmd}[2][Wikimedia]{This is the Wikibook about LaTeX supported by {#1} and {#2}!}
+
+\newcommand{\hrefn}[2]{\href{#1}{#2}\footnote{See {\texttt #1}}} %HyperRef and Footnote in one
+
+\newcommand{\sn}[0]{SemNet}
+
+\title{\texttt{semnet} --- A Semantic Network Pattern Matching Engine}
+\author{Per Nordlöw}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+% \begin{multicols}{2}
+
+\tableofcontents
+
+\section{What is SemNet?}
+\sn{} is a new kind of \emph{pattern matching} engine tightly coupled to the
+file system. It's designed to index large amounts of \emph{graph}-linked data
+structures. The bidirectional graph is the most general data structure which
+naturally emerges in many kinds of data today, typically in source code
+structures, thereby \emph{superseding} the traditional hierarchical structure
+used in most traditional file systems.
+
+\subsection{Brain-like}
+
+The basic assumption behind the \emph{infrastructure} of \sn{} is that,
+
+\begin{quotation}
+  like the \emph{massively interconnected human brain}, the key to
+  \emph{efficient} and \emph{usable} storage lies in number of relations
+  (associations) that can be defined between \emph{fine-grained} patterns.
+\end{quotation}
+
+Therefore \sn{} expresses as much knowledge as possible through semanticly
+typed (\codeREL{t}) relations between \codeCxx{Ob} entries in
+\codeCxx{Reg}. See \hrefn{http://en.wikipedia.org/wiki/Typed_link}{Typed link}.
+
+Another consequence of this \texttt{{}"{}}\emph{prepare for the
+  future}\texttt{{}"{}}-assumption is that \emph{random access time} of any part
+of the content is within the same order of magnitude. This is motivated by the
+current explosion of \emph{solid-state drives} (SSD) as replacements for hard
+disks. Access times and lookups of relations are 100 to 1000 times faster than
+hard disks. This in turn motivates the use of random accesses in search and
+match algorithms and structuring data in graphs instead of tables.
+
+\section{Patterns}
+
+% \section{Pattern Language}
+
+% Syntax is C-like to make it popular for developers (compare with
+% \hrefn{http://www.hyperrealm.com/libconfig/}{libconfig}).
+
+\sn{} is \emph{data-driven} by \emph{graphs} of \emph{pattern specifications}
+(\codeCxxClass{Patt}). This contrasts most other \emph{code-driven} software.
+
+\subsection{Data-Driven}
+A data-driven architecture enables
+\begin{itemize}
+\item \emph{self-reflection} of properties such as \emph{size range and
+    complexity} of instances (samples),
+\item \emph{approximate} matching by relaxing sub-conditions such situation
+  (\codeCxxClass{Sit}) and context (\codeCxxClass{Ctx}),
+\item \emph{flexible pattern specifications} not bound specifically to file
+  streams but can instead operate on \emph{raw devices} for example when
+  \emph{rescuing crashed file systems} and
+\item easier integration with \emph{code-generation} applications such as in
+  evolutionary computations (EC).
+\end{itemize}
+
+\subsection{Graph-Structured}
+A graph-structured pattern representation enables
+\begin{itemize}
+\item better \emph{reuse} of sub-patterns, for example across different language
+  parsers.
+\end{itemize}
+
+\subsection{Fine-Grained}
+
+All patterns are broken down into \emph{sub-patterns} and eventually to
+\emph{atomic} patterns (\emph{constant literals}). This improves flexibility and
+a higher degree of pattern \emph{reuse} possible. It also unifies descriptions of
+\emph{lexical} and \emph{semantic} patterns into one common, often directed, graph.
+
+\section{Text}
+
+In textual processing \emph{lexical}, \emph{syntactic} and \emph{semantic}
+building blocks of text (generalizing the concept of \emph{pre-compiled
+  headers}, PCH, in compilers).
+
+\section{Matching}
+
+\section{Caching}
+
+\subsection{Memoized Intermediates}
+Most scan hits and operation outputs (final and intermediate) are automatically
+\emph{persistently} (written on disk) \emph{cached} (\emph{memoized}) if they
+are \emph{sufficiently small} compared to the input size. See \codeREL{OP_CACHE}
+and \codeREL{CACHING_OP}.
+
+\subsection{Numerical}
+
+Sampled numerical arrays of data could cache, for example, \emph{sum} (and in
+turn mean/average), \emph{product} (and in turn \emph{geometric average}) and
+\emph{unnormalized moment} (variance, skew, kurtosis).
+
+\subsection{INO-Hashing}
+
+The output hash key is either an integer code (pre-defined or dynamic) or a
+serialization (or \emph{check sum} hash) of the \emph{network} that produced the
+intermediate result. This output hash is in turn stored in hash-table using the
+input data as the hash-key. I will call this hashing INO-Hashing, short for
+Input-plus-Network to Output Hashing.
+
+\subsubsection{Hash Chains}
+\hrefn{http://en.wikipedia.org/wiki/Hash_chain}{Hash-chains} (hashes of hashes)
+are used to calculate INO-hashes of (\emph{hierarchical}) computational networks
+containing sub-networks (\emph{modules}). This is similar to how the version
+control system Git
+\hrefn{http://www-cs-students.stanford.edu/\~{}blynn/gitmagic/index.html}{assures}
+data integrity on its history.
+
+\subsubsection{Fitness}
+
+Specifically in Evolutionary Computation (EC) we avoid the cost of evaluating a
+specific network more than once through a \emph{fitness cache} using a hash (say
+SHA-1) of the input and the network's cellular code.
+
+\section{\emph{Self-Reflective} Patterns}
+
+\sn{} patterns are represented in an \emph{object-oriented},
+\emph{graph-structured}, \emph{reusable} and \emph{fine-grained} format. This
+enables us to write algorithms that can \emph{analyze}, in statistical way, what
+the patterns describe and therefore realize \emph{global pattern matching}. It
+also enables \textbf{auto-generation} of pattern \textbf{instances}. To make
+this interactable we then describe these patterns in a truly \emph{graphical
+  language} supported by \textbf{DVis}. This language can then be used to
+describe a pattern matching, for example, {\centering \emph{some
+    \textbf{directory} containing some \textbf{file} having some kind of
+    \textbf{attribute} and some kind of \textbf{content}.}  }  If we also need
+optimal performance we can supplement the matcher with a hand-written
+specialized function that performs the same matching.
+
+\section{Real-Time Synchronized}
+
+No more rescanning and parsing.
+
+Detects \emph{external changes} from either
+\begin{description}
+\item[inotify] detectes file changes
+\item[fanotify] provides \emph{on access file scanning} requested by
+  anti-malware vendors.
+\item[\hrefn{http://stefan.buettcher.org/cs/fschange/index.html}{fschange}]
+\item[\hrefn{http://freshmeat.net/projects/rfsdelta/}{rfsdelta}]
+\end{description}
+and tags all content as obseleted (using \codeC{Ob::obs_flag}) (and when
+needed) distribute these tags to relating objects.
+
+Inotify and fanotify of these relies on the \emph{fsnotify} in kernel
+infrastructure.
+
+Reorder idle processing queue according to distance to current user interaction
+context such as the \emph{current directory} of (shell) process. Use for example
+in cases where sound/picture/ and movie concat based on their beginnings ends.
+
+\section{Information Types}
+
+Stores and Processes all kinds of information (including real-life \emph{analog} data):
+\begin{itemize}
+\item Audio/Sound
+\item Images/Pictures
+\item Video
+\item Human Languages
+\item Computer Languages
+\end{itemize}
+
+\section{Unification}
+
+\emph{Unification} of Search and Replace Tools, IDEs, Editors, Tag/Intellisense
+Databases, VCS, Refactoring, Compilers, Linkers, Unit Testers, Interpreters,
+Shells.
+
+\section{Wishlist}
+
+\begin{itemize}
+\item \textbf{Search and Replace}: Only operates on special kinds of
+  information. For example one function for search and renaming files and
+  another for replacing words in files. Is is important that search and replace
+  is \emph{interactive} and generates the hits \emph{dynamically} so that the
+  user can interact with the first element of the resulting set of hits as soon
+  it is generated (compare with Emacs' grep and compilation interface).
+
+  Query Replaces should provide the alternatives: \mbox{$[$}y,n,Y,N\mbox{$]$}
+  were \mbox{$[$}y,n\mbox{$]$} applies/skips the current replace and
+  \mbox{$[$}Y,N\mbox{$]$} applies/skips the replaces for all occurrencies in the
+  current file (compare with Emacs \texttt{query-replace.*}()).
+\item \emph{Unified Namespace for \textbf{all} Content} reaching all Nodes and
+  Paths in Content Graph with \emph{prefix}, \emph{suffix} and \emph{partial}
+  completion. Examples:
+  \begin{itemize}
+  \item \texttt{/etc/passwd\textbf{::}modification_time} (Read-Write in DVis)
+  \item \texttt{/etc/passwd\textbf{::}size} (Read-Only in DVis)
+  \item \texttt{/etc/passwd\textbf{::}xattr.user.SemNet.chash.SHA1} (Ignored by
+    semnet)
+  \item
+    \texttt{/etc/passwd\textbf{{\char64}}lines\mbox{$[$}1-10\mbox{$]$}\textbf{{\char64}}columns\mbox{$[$}1-3\mbox{$]$}}
+    where \textbf{{\char64}} is the \emph{content-addressing} scope operator.
+  \end{itemize} It may be more suitable to use a special Unicode symbol, say the
+  mathematical \emph{member of}, representing \emph{scope}. Typically inserted
+  using \texttt{Ctrl} plus \texttt{DownArrow}.
+\item \emph{Generalized Query-and-Operate Language} that uses Unicode Section
+  \emph{Mathematical Operators}. No more backquoting of language specialized
+  characters is needed. Examples:
+  \begin{itemize}
+  \item \emph{Update} a set of files from a given source.
+  \item \emph{Copy} all files of type \emph{\texttt{{}"{}}C Source
+      Code\texttt{{}"{}}} to a given destination.
+  \item \emph{Remove} /etc/passwd\textbf{::}line\mbox{$[$}0\mbox{$]$}.
+  \end{itemize}
+\item \emph{Filesystem-Global Operation Proposal}: Any Content should
+  automatically present to the user what can be done with it and vice versa:
+  \begin{itemize}
+  \item \textbf{Any}: Delete. Deletion should warn if file is
+    used (opened) by other process (see source of lsof for details).
+  \item \textbf{Autogenerated Content}: \emph{Updated} from source, but
+    \emph{not} explicitly edited. Example: Content generated by
+    \emph{autotools}. Example: \texttt{Makefile} generated from \texttt{Makefile.am}
+    and \texttt{Makefile.in}. Example: \texttt{configure} generated by
+    \texttt{autoconf}(\texttt{configure.ac} or \texttt{configure.in})
+  \item \textbf{File/Directory}: Copied/Cloned, Copied/Cloned to, Moved To,
+    Check references to and from.
+  \item \textbf{Version Controlled Directory}: VC Operations. See Emacs VC
+    Interface to hints. Extra feature: Finding local matching (cloned)) repositories
+    (git, hg, bzr) that can be pulled from each other synchronized. File Patterns:
+    (\texttt{.svn}, \texttt{CVS}, \texttt{.git}, \texttt{.bzr}, etc)
+  \item \textbf{Text Files}: Edited. File Patterns: \texttt{.txt}
+  \item \textbf{Shell Scripts}: Executed. File Patterns: \texttt{.sh},
+    etc. Completion of possible customizable variables defined inside
+    scripts. Example call: \texttt{call do_something.sh with ARG=val;}
+  \item \textbf{Executables and Libraries (Shared and Static) (ELF, COFF)}:
+    Queried for Internal Structure (objdump) such as Symbols, Platform, etc using C
+    header file \hrefn{file:/usr/include/elf.h}{elf.h} and libelf. Also see
+    \hrefn{http://docs.sun.com/app/docs/doc/816-0217/6m6nhta90?a=view}{elf(3ELF)}
+  \item \textbf{Makefiles}: Built using (GNU) \texttt{make}. File Patterns:
+    \texttt{\mbox{$[$}mM\mbox{$]$}akefile},
+    \texttt{GNU\mbox{$[$}mM\mbox{$]$}akefile}
+  \item \textbf{Autoconf}: Built using \texttt{autoconf}. File Patterns:
+    \texttt{configure.ac},\texttt{configure.in}
+  \item \textbf{Packages} File Patterns \texttt{.*/lib/pkgconfig/.*}
+  \end{itemize}
+\item Is it possible to automatically detect relations between files and the
+  programs that operate on then? Ask Google Groups.
+\end{itemize}
+
+\section{Applications}
+
+\subsection{In-Symbol Completion Mechanism}
+
+Example: Completing at the letter \texttt{A} in the string \codeCxx{VRELA_NEW}
+gives \codeC{VRELAY_NEW}. Compare with Emacs package \texttt{mdabbrev.el}.
+
+Related to this is completion of \emph{Regular Expression}
+\texttt{x} when
+set of search hits matching \texttt{x} is available.
+
+Completion should work also by \emph{reordering subwords} (delimited by
+\texttt{'-'} or \texttt{'_'}):
+{\centering             \texttt{bar-foo} is completed/corrected to \texttt{foo-bar}
+}          This completion could be implemented using an algorithm found in
+Weiss's book (31666-3) (something with least consecutive substring...).
+
+\subsection{New Kinds of Search and Compare/Match Mechanisms}
+
+\begin{itemize}
+\item \emph{Clustered Search and Replace} based on search hit \emph{context}.
+\item \emph{Fuzzy Search}: In combination with my Fuzzy Search Algorithm
+  (length-normalized) matches of sentences with \sn{} provides a new way of
+  asking questions to the computer. Enables quick browsing through manual-pages,
+  info-pages, html-titles/content, etc.
+\item Automatic Expansion of Acronyms and Substitution of Synonyms aswell as
+  automatic revertal to these after exact matches are shown.
+\item Generic Global (Recursive) Matching
+  \begin{itemize}
+  \item Matches of Similar Tree Patterns in File Systems Trees (compare with
+    version control systems)
+  \end{itemize}
+\end{itemize}
+
+\subsection{More Clever File System Synchronizations based on \emph{content}.}
+
+With \emph{O(1)} file comparison performance \sn{} can keep track of
+directories that partly or completely share the same content.  Perhaps a
+\codeCxx{Dir::sub_copy_counter} that counts the number of childs having content copies
+is the thing to use.  A suitable relation type could be named
+\codeREL{DUPLICATE_CONTENT}.
+
+This enables very clever synchronization mechanisms, that don't require the user
+to name directories sharing a similar sub-structure with a common name.  Compare
+with \textbf{\hrefn{http://git.or.cz/}{git}}: \emph{a fast content adressable
+  file system}.
+
+\subsection{Self-Relating/Attracting Objects}
+Auto discover input-code-output relations. Applications: auto-recompile/rebuild
+objects from sources code, auto-unit-test, auto-visualize upon file (region
+modifications.
+
+\emph{Fuzzy-parsing} is \emph{fault-tolerant} to unmatched braces and
+quotes through most \emph{most probable} pattern data match.
+
+Knows which \emph{combination of objects} that can \emph{interact} with each
+other. For example \emph{functions} that operate on specific a
+\emph{combination} of data types/structures. Useful, for example, in the
+programming languages C and C++ for single argument functions, and in all other
+languages for multi-argument functions.
+
+\subsection{Duplicate Detection and Operations on these}
+\begin{itemize}
+\item Convert \emph{duplicates} (\codeREL{COPY}) to \emph{symbolic links.}
+  (\codeREL{SOURCE} and (\codeREL{TARGET}) or vice versa.
+\end{itemize}
+
+\subsubsection{Delete Content having Duplicate Names and or Content}
+Remove elements (downloaded files) in selection (current directory) already
+present elsewhere (in other directory or repository).
+
+\subsubsection{Deleted Files}
+Remove content from only of several synchronized directories and want the
+\emph{deletions} to be \emph{synchronized} aswell.  Use both name- and
+content-hashing of files.
+
+\subsection{Completion}
+
+Complete Indexing of all C and C++ header files in system include path, normally
+in \texttt{/usr/include} and \texttt{/usr/local/include}.  Enables automatic
+insertion of \texttt{\#include} statements.  Example: if not already included
+the statement \texttt{\#include \texttt{{}"{}}string.h\texttt{{}"{}}} gets
+automatically included when \texttt{strcpy()} is used. Should work for both
+local and system includes.
+
+\subsection{Language Translation}
+
+Automatic Translation/Conversion between \emph{GUI} Toolkits: MOTIF,
+  WxWidgets, GTK, Qt, Java Swing, etc.
+
+\subsection{More Advanced Syntax Highlighting}
+
+\begin{itemize}
+\item Colorize the \emph{use} of \emph{Functions}, \emph{Variables},
+  \emph{Constants}, \emph{Types}, \emph{Structures} (Type attributes plus
+  boldness), \emph{Classes}, \emph{Function Arguments/Variables},
+  \emph{Preprocessor Macros} and \emph{Constants} not only their definitions.
+\end{itemize}
+
+\subsection{Reverse Engineering of Data Formats (File Types)}
+
+By training a database with a set of example files for each file format using
+template matchings.
+
+\subsection{Reverse Engineering of Computer Languages by \emph{learning} from Example Code}
+
+Syntax of Natural and Computer Languages are automatically learned from working
+examples. Pitfalls are learned from incorrect examples.
+\begin{itemize}
+\item \emph{Keywords}: Occur frequently and are in C/C++/Java/C\# not assigned
+  to nor used in any arithmetical or logical expressions.
+\end{itemize}
+
+\subsection{Reverse Engineering the Structure (Reverse-Structuring) of Code Projects}
+
+\begin{itemize}
+\item Finds Class Inheritance of Object-Oriented Languages.
+\item Finds Functional Dependencies.
+\end{itemize}
+
+\subsection{Detection of Computer Languages by \emph{testing} Different Matchers,
+  Ranking and Comparing the Results}
+
+Examples of Applications: Auto-highlight source-code inside HTML \texttt{pre}
+and \texttt{code} tags. Ranking must somehow \emph{promote fewer but more
+  complex patterns higher than more but less complex patterns}. One simple
+example could be {\centering higher-pattern-rank = 2 * sum-of-its-child-ranks }
+or perhaps {\centering higher-pattern-rank = 1 + sum-of-its-child-ranks }
+
+\subsection{Software Metrics and Statistics}
+
+\begin{description}
+\item[Frequencies] Number of Min/Max/Mean-Length of
+  \begin{itemize}
+  \item Functions
+  \item Variables
+  \item Constants
+  \end{itemize}
+\item[Code Reuse] Measured as attributes of call-tree.
+\item[Code Complexity] See for example McCabe's
+  \hrefn{http://en.wikipedia.org/wiki/Cyclomatic\_complexity}{Cyclomatic
+    Complexity} Metrics and the commercial software
+  \hrefn{http://www.sgvsarc.com/overview\_software.htm}{SGV SARC}.
+
+\item[Syntax Detection] Prerequisites are ASCII categories are
+  \begin{itemize} \item Braces: \mbox{$[$}\mbox{$]$}, (), \{\},
+    % < href="http://en.wikipedia.org/wiki/Cyclomatic_complexity">
+  \item Identifier Parts (english Letters and underscore):
+    \mbox{$[$}a-zA-Z\_\mbox{$]$}
+  \item Numbers: \mbox{$[$}0-9\mbox{$]$}
+  \end{itemize}
+\end{description}
+
+\subsection{Code Format Detection}
+
+\begin{itemize}
+\item Braces: \mbox{$[$}\mbox{$]$}, (), \{\},
+  % < href="http://en.wikipedia.org/wiki/Cyclomatic_complexity">
+
+\item Identifier Parts (english Letters and underscore):
+  \mbox{$[$}a-zA-Z\_\mbox{$]$}
+\item Numbers: \mbox{$[$}0-9\mbox{$]$}
+\end{itemize}
+
+\subsection{Easy Code Analysis, Completion, Assistance and Refactoring}
+
+\begin{itemize}
+\item C to C++ Conversion Assistance.
+  \begin{itemize}
+  \item Detect Preferred Use of \emph{Class Inheritance}. For example \texttt{
+      struct \textbf{B} \{ struct \textbf{A} a; int i; \} b; } is converted to
+    \texttt{ class \textbf{B} : public \textbf{A}; } \end{itemize}
+\item \emph{Generate Function Testers} directly from sources based on what
+  arguments a function takes and \emph{visualize output as a function of its
+    arguments}.
+\item Detect \emph{Mutable} Members (only defined by other members in struct or
+  class).
+\item Complete \emph{arguments} to \emph{command} line calls (such as
+  \textbf{make}) {\centering \texttt{ make BUILD_TYPE=fast } } based on contents
+  of their corresponding implicit or explicit in files (such as
+  \textbf{Makefile}): {\centering \texttt{ifeq (\$(BUILD_TYPE),fast)} } or
+  perhaps even more complete using the regular expression
+  \texttt{\mbox{$[$}A-Z_\mbox{$]$}+=}.
+\item Easy \emph{Function Extraction/Removal}
+\item Easy \emph{Removal}, \emph{Adding} and \emph{Reordering} of Function
+  Arguments
+\item \emph{Merging} of a Set of Variables {\centering \texttt{ int x, y; } }
+  into a C structure or C++ class: {\centering \texttt{ vec2i vi; } } that also
+  suggests update of function arguments adjacently containing structure member
+  types.
+\item \emph{Optimization} of Logic. For example the Lisp expression {\centering
+    \texttt{(if x x y)} } is equivalent to the more compact {\centering \texttt{(or
+      x y)} } that also suggests update of function arguments adjacently containing
+  structure member types.
+\item \emph{Detection} of \emph{Initialization-Clearing} Function Pairs like
+  \texttt{mpz_init()} and \texttt{mpz_clear()} and possibly automatic conversion
+  to C++ Constructors and Destructors.
+\item Checking of \emph{Argument Naming} in function declaration and definition.
+  When analyzing the following code {\centering \texttt{ int inc1(int x); }
+    \texttt{ int inc1(int a) \{ return a+1; \} } } \sn{} should be a able to warn
+  that the variable of the function \texttt{inc1} is named differently in
+  declaration and definition.
+\item Function declaration / definition is not a prototype: {\centering \texttt{
+      void foo(); } } should automatically suggest a corrected variant:
+  {\centering \texttt{ void foo(void); } }
+\item Direct Feedback of Name-Clashes in
+  \begin{itemize}
+  \item Renaming of symbols or files in code-trees (projects)
+  \end{itemize}
+\item Changing between pass by \emph{value} and pass by \emph{reference}.
+  \begin{itemize}
+  \item In C between value and pointer.
+  \item In C++ between value, pointer or reference.
+  \end{itemize}
+\item Handling of \emph{adding} and \emph{removal} of sets of parameters to sets
+  of functions beginning at position relative to beginning or end of existing
+  parameters.
+\item \emph{Generalization} of Structures, Classes and Functions into C++
+  Templates or Java Generics.
+\item Detect \emph{Mismatch} between C/C++ Header Filenames and
+  \emph{\#ifdef-\#define-guards}.
+\item Assure that the end (case-insensitive) of the C header file constant used
+  by the C/C++ CPP Guard ifndef-define-construct is always uptodate with Header
+  Filename. Example: \codeC{\$PWD_FILENAME_H} and \emph{no duplicates} of these
+  kinds exist in any of the Project and System Header Files.
+\item Pairing (stick together) of
+  \begin{itemize}
+  \item \emph{variable} and \emph{function} declarations (in header file) and
+    definition (in source file)
+  \end{itemize} when moving these objects across files.
+\item Detect \emph{Duplications}
+  \begin{itemize}
+  \item \emph{Code} Duplications for primarily
+    \begin{itemize}
+    \item Preprocessor \#defines,
+    \item Static Functions but also
+    \item Inline Code
+    \end{itemize}
+  \item \emph{File} Duplications
+  \end{itemize}
+\item Suggest Preferred Code Editing Style, such as \emph{indentation} style,
+  based on the current contents of the file being edited.
+\item Detect Mismatched combination of OpenGL Vertex Arrays Functions like
+  {\centering \texttt{glVertexPointer(2, GL_FLOAT, 0, points);} and
+    \texttt{glDrawArrays(GL_POLYGON, 0, points_num);} }
+\item Detect Potential Memory Allocation Bugs like {\centering \texttt{int * x =
+      malloc(3 * sizeof(float));} }
+\item Detect \emph{Missing Parenthesis} around C Macro Values; {\centering
+    \texttt{\#define Y X+1} which should be \texttt{\#define Y (X+1)} }
+\item Detect \emph{Obselete Interfaces}: for example use open(2) instead of
+  create(2). Other example: string-to-int() => string-to-number() in Emacs Lisp.
+\item Syntax Errors *interactively*
+\item Detect \emph{Infinite Loops}
+\item Detect \emph{Infinite (Cyclic) Recursions}, etc.
+\item Detect \emph{Memory Leaks}
+\item Detect Function Callgraphs
+\item Detect Lack of Check in calls to that memory allocators such malloc return
+  a non-zero (NULL) value.
+\item Propose \emph{Constant Attribute} to functions that does \emph{not} change
+  the variable.
+\item \emph{Semantic Completion} and thereby \emph{Automation} of \emph{User
+    Input}, mainly for \emph{programming assistance}. Such as in the following
+  case: Reads and writes to the boolean variable \texttt{g_sfxs_uopt} is
+  mapped to function calls to \texttt{uopts_enable()},
+  \texttt{uopts_disable()} and \texttt{uopts_get()}.
+
+  Needs statistics on cursor movement and file editing history at multiple
+  structural levels --- byte (offset), lexical, syntactical, semantical, etc.
+\end{itemize}
+
+\subsection{Extraction of Communication Paths in source code }
+
+Finding
+communication paths between either processes or functions enables us to find
+relations.
+Patterns: \texttt{socket() SOCK_STREAM, SOCK_DGRAM, SOCK_RAW, SOCK_SEQPACKET,
+  SOCK_RDM, read(), write(), sendto(), recvfrom(), msgQ...()}, ... .
+
+\subsection{Language detection using aspell}
+
+Language detection with aspell
+spell-checking enables us to automatically determine the encoding of
+text-file. Use it first with the words file. Realized using histograms of pfile
+word to languages matches.
+
+Using detected language(s) we can then \emph{split} up combined
+words such as \emph{filename} into \emph{file} and \emph{name}
+and index these separately. This is the \emph{auto-correction}
+humans expect from a search function. Many of Googles Services and
+many other web search engines, such as Blocket, does \emph{not}
+provide this feature, which can be very frustrating.
+
+\subsection{Spelling Correction}
+
+Spelling Correction of Identifiers by comparing with tags (or other databases)
+and symbol tables in object files (ELF) and aspell dictionaries.  For details
+see \texttt{elf.h} and \texttt{libelf} and \texttt{elf} manual page.  Also see
+\hrefn{http://people.freebsd.org/.jkoshy/download/libelf/article.html}{libelf by
+  example}
+
+\subsection{Visualize different behaviours in code trees: such as communication paths through queues, sockets, files, etc...}
+
+
+\subsection{Predicates about any kind of data format and relation}
+
+
+\subsection{Automatic detection of code (disassembling) and data in binary files}
+
+
+\subsection{Tag functionality that replaces tags (etags,Exuberant ctags,GNU GLOBAL)}
+
+
+\subsection{Automatic Detection of Object Attribute Patterns}
+
+Interactive detection of automations by detection of patterns in the commands given by the user - that is automatic suggests suitable macros. Compare Automator on Mac OS X.
+Example Usage: Select all words in italic.
+
+\subsection{A Complete Modelling Hierarchy:}
+
+
+\subsubsection{Code:}
+
+\begin{enumerate}
+\item Kernel
+\item Process
+\item Function (Call Stack)
+\item Library
+\end{enumerate}
+
+\subsubsection{Content:}
+
+Use FUSE, GNOME GVFS/Gio to simplify traversing all kinds of content.
+\begin{enumerate}
+\item Internet
+\item Networks
+\item Sub-Networks
+\item Hosts
+\item File Systems
+\item Directories
+\item File
+\item Groups (Doxygen)
+\item Lexical, Syntactic and Semantic Structures
+\item Tags: Word, Statement: Function Call
+\item Sub-Tags (\texttt{foo} and \texttt{bar} is a subtag of \texttt{foo_bar})
+\item Atom: Character, Byte
+\end{enumerate}
+
+\section{Prime Directives}
+
+To make this possible we need some guiding prime directives given in descending
+priority (highest first)
+
+\subsection{Trinity: Data Compression, Signal Detection, Signal-Model Fitting.}
+
+\subsection{Detects both \emph{Digital} (Human and Computer Languages) and
+  % <en href="http://people.freebsd.org/\~{}jkoshy/download/libelf/article.html">
+  Analog
+  % </en href="http://people.freebsd.org/\~{}jkoshy/download/libelf/article.html">
+  (Real-World) Patterns.}
+
+\subsection{Incremental/Iterative Processing Of Data - no operations go unused
+  in the long run.}
+
+\subsection{More efficient reuse of long-time pattern matchings than in
+  traditional relational databases.}
+
+\subsection{Minimize Memory Usage}
+
+Highest priority is always to minimize the the memory footprint of knowledge as
+I believe this is the fundamental property of a pattern matching intelligence.
+
+\subsection{Reduce Information - a compact and general representation.}
+
+\subsection{Relations}
+
+Design Relations - can be ambiguious, that is N-to-N. And always
+*bidirectional*. Are allowed to be UNRESOLVED.
+
+\subsection{Evolve Relations}
+
+\subsection{Find Deviations}
+
+\subsection{Fuzzy Version Number Sort}
+
+Sorting of fuzzy version numbering methods a la x.x.x and filenames ordered
+according to numbers: f0, f1.f2 should come prior to f01 f10, f10, f11 osv. It
+all depends on the \emph{context}.  All forms of data content is indexed with a
+data format specifier DFMT_t currently defined in
+\\~{}{}/cognia/tests/t_dvis.c.  We need a very efficient mechanism to describe
+WHICH VF_Xi HOW and TO WHAT RELATE to other VF_Y. These relations are be
+similar to regular expression operators. The relations should be named something
+like: FOP_ANY(), FOP_ALL(), FOP_ALT(), FOP_CAT(), An example of such a
+relation may be a function call like: VF_FUNCALL: VF_CAT(VF_IDENT, VF_LPAR,
+VF_RPAR): foo() All this information is stored as the most general tree
+possible. Relations (between nodes in this tree) also contain a strength value
+that is adjusted according to training data.
+
+\section{Language}
+
+Database written in a relational language inspired by Prolog.  \emph{It enforces
+  the programmer to reuse intermediate patterns}.  Intermediate patterns are
+however also generated in database evolvings through iterations/optimizations.
+
+\section{Simple Syntax}
+
+\# Documentation
+IDENT (
+% <relation href="http://people.freebsd.org/\~{}jkoshy/download/libelf/article.html">
+IDENT+)+
+
+\section{Raw Patterns (Literals)}
+
+The \emph{raw} patterns (\codeCxxClass{Patt}) are separated from their
+\emph{meaning}.
+
+\section{Interpretations \& Meaning (\texttt{PINTR_t})}
+
+\subsection{Bit/Byte (Binary) Format}
+
+\begin{itemize}
+\item \texttt{UI8}, \texttt{SI8}
+\item \texttt{UI16}, \texttt{SI16}
+\item \texttt{UI32}, \texttt{SI32}
+\item \texttt{UI64}, \texttt{SI64}
+\item \texttt{UIxx}, \texttt{SIxx}
+\item \texttt{FLOAT}, \texttt{DOUBLE}, \texttt{LONG_DOUBLE}
+\item \texttt{COMPLEX}
+\end{itemize}
+
+\subsection{Physical Units}
+
+Numerical data can be related to to a \emph{physical} (\emph{singleton})
+\codeCxxClass{Unit} object, through which we can reach, for example, all data of a
+specific physical unit, which can in turn be used in DVis completion of for
+example, adding of numerical entities.
+
+Uses \hrefn{http://marinemetadata.org/news/udunits2}{\texttt{udunits2}}.
+
+\section{Matchers, Hits and Scans}
+
+A \codeCxxClass{Matcher} describes a pattern and its \emph{behaviour} semantics,
+syntax and context. A \texttt{patterns::Hit} is an instance of a \codeCxxClass{Matcher}. A
+\codeCxxClass{Iter} searches for occurrencies of \codeCxxClass{Matcher}s in a set of
+objects and returns \emph{patterns::Hit}s.
+
+\subsection{Matcher}
+
+A matcher falls into one of the following classes:n
+
+\subsubsection{Literal (Terminal, Atom)}
+
+\begin{itemize}
+\item atom\textbf{N}: \textbf{N}-bit literal
+\item str: string literal (set of ASCII-characters)
+\end{itemize}
+
+\subsubsection{Alteration (Regexp): \textit{alt(a,b)} matches \textit{a}
+  \emph{or} \textit{b}.}
+
+\subsubsection{Grouping (Regexp): \textit{adj(a,b)}
+  matches \textit{a} \emph{adjacently followed by} \textit{b}.}
+
+\subsubsection{Quantification (Repetition) (Regexp): \textit{rep(a,m,n)}
+  matches \textit{a} \textit{m} to \textit{n} times.}
+
+\subsubsection{Generic Template (not possible with Regexps)}
+
+We need some way of compactly expressing generic parameter patterns (templates)
+Examples:
+\begin{itemize}
+\item x = x;
+\item y = y;
+\item z = z;
+\end{itemize}
+should be automatically detected and stored in database as instantiations of a
+template id.
+
+\subsection{Hit}
+
+A hit belongs to one of the following classes:
+\begin{itemize}
+\item \textbf{patterns::Hit_Const} (phitfc): (Fixed-length) Constant Hit
+\item \textbf{patterns::Hit_Fix_RangeL} phit_fix_rl: Fixed-length Upper Limit Hit
+\item \textbf{patterns::Hit_Fix_RangeU} phit_fix_ru: Fixed-length Low-Range Hit
+\item \textbf{patterns::Hit_Fix} phit_fix: Fixed-length Hit
+\item \textbf{patterns::Hit_Var} phit_var: Variable-length Hit
+\item \textbf{patterns::Hit_Rep_Adj} phit_rep: Adjacent Repetition
+\item \textbf{patterns::Hit_Rep_Ival} phit_rep: Interval Repetition Context...
+\end{itemize}
+
+\subsection{Scan}
+
+Scans are \emph{block-coordinated} on memory files to make optimal use of
+locality and thereby maximum disk read performance.
+
+\section{Relation types}
+
+Extends single-directional relations for regular expressions to be
+bi-directional. See \codeREL{t} in \codeC{SemNet.hpp} for details.
+
+\section{Internal Structure}
+
+\subsubsection{Batch-Oriented Loop:}
+
+\begin{itemize}
+\item Update semnet structure.
+\end{itemize}
+Maximizes the number of relations between all parts down to the smallest parts
+of the data, similar to the approach taken by
+\hrefn{http://www.namesys.com/v4/v4.html}{Reiser4}.  Assumes \emph{Brain Like
+  three-dimensional Processing Structure}. As of 2007 not yet available but will
+soon be.
+
+Dynamically built indexed relational \emph{cross-level pattern matching}
+database of all sorts of files and their content in the filesystem, such as C /
+C++ indentifiers, text-file words etc.
+
+The internal structure for storing patterns and especially templates is crucial
+to the performance of \sn{}: {\centering \emph{Postfix or Prefix?}}
+
+Every pattern has a level used in the iteration completion checking.
+
+Specific interpretation of very simple patterns are often highly dependent on
+the \emph{context}.
+
+New information is stored through template-matching with previously stored
+data. The driving forces here is to
+\begin{itemize}
+\item minimize the increase of the size of the information (\textit{D_i}) at
+  each step. \textit{D_i} can of course be negative in some fortunate
+  generalizing cases.
+\item reuse computations using information in hierarchical template patterns
+\end{itemize}
+
+\subsection{ \emph{Multithreaded} Architecture:}
+
+\codeCxxClass{File}s can be locked and \codeCxxClass{Dir}s can be locked recursively by
+analyzing threads.
+
+\subsection{ Content-Based Addressing (CBA) }
+
+\subsection{ Performance Decisions}
+
+Performance order if Importance
+\begin{itemize}
+\item \textit{Search} (Compare) (\textbf{high} prio)
+\item \textit{Add} (Modify) (\textbf{medium} prio)
+\item \textit{Remove} (\textbf{low} prio)
+\end{itemize}
+
+\subsection{Expand-Reduce Dynamics}
+
+The internal structure is like a parse-tree but generalized to a \emph{network}
+of nodes.  Each node is \emph{self-aware} of how it can, possibly recursively,
+\emph{expand} its structure to \emph{sub}-structures or together with other
+nodes \emph{reduce} its structure to a \emph{super}-structure.
+
+\section{Links and Inspirations}
+
+\begin{itemize}
+\item \hrefn{http://en.wikipedia.org/wiki/Semantic_networks/}{Semantic network
+    on Wikipedia}
+\item
+  \hrefn{http://video.google.com/videoplay?docid=2159021324062223592\#}{Everything
+    is Miscellaneous} --- how digital information makes us organize things in a
+  non-hierarchical \emph{more humane} way, similar to how our brain structures
+  information.
+\item The Arts, Media and Engineering Library Assortment
+  (\hrefn{http://ame4.hc.asu.edu/amelia/}{AMELiA})
+\item An Exploration of Object Oriented Database Management Systems
+  (\hrefn{http://www.25hoursaday.com/WhyArentYouUsingAnOODBMS.html}{OODBMS})
+\item \hrefn{http://www.linux-mag.com/id/7308/}{Linux Don't Need No Stinkin'
+    ZFS: BTRFS Intro \& Benchmarks}
+\item \hrefn{http://fuse.sourceforge.net/}{FUSE - Filesystem in Userspace}
+\item \hrefn{http://en.wikipedia.org/wiki/Filesystem.in.Userspace}{FUSE -
+    Filesystem in Userspace on Wikipedia}
+\item \hrefn{http://curlftpfs.sourceforge.net/}{CurlFtpFS - A FTP filesystem based on cURL and FUSE}
+\item \hrefn{http://lfs.irisa.fr/}{LFS} --- Logical Information Systems
+\item \hrefn{http://www.neuroblast.net/}{Evolutionary Intelligence}
+\item \hrefn{http://llvm.org/}{The LLVM Compiler Infrastructure}
+\item \hrefn{http://research.att.com/.marioh/spatialindex/}{Spatial Index Library}
+\item \hrefn{http://www.cs.berkeley.edu/.smcpeak/elkhound/}{Elkhound}: A GLR
+  Parser Generator and Elsa: An Elkhound-based C++ Parser
+\item \hrefn{http://www.cs.ucr.edu/.stelo/pattern.html}{Pattern Matching Pointers}
+\item \hrefn{http://www.program-transformation.org/Transform/WebHome}{Program-Transformation.Org}
+\item \hrefn{http://www.ipd.bth.se/ska/sim.home/libghthash.html}{libghthash}
+\item \hrefn{http://mhash.sourceforge.net/}{libmhash}
+\item \hrefn{http://en.wikipedia.org/wiki/Inotify}{inotify}
+\item \hrefn{http://en.wikipedia.org/wiki/Extended.file.attributes}{Extended attributes (\texttt{xattr.h})}
+\item \hrefn{http://www.and.org/vstr/comparison}{String library comparison}
+\item \hrefn{http://www.cs.sunysb.edu/.algorith/index.html}{The code
+    monkey's guide to cryptographic hashes for content-based addressing}
+  \hrefn{http://www.linuxworld.com/cgi-bin/mailto/x.linux.cgi?pagetosend=/export/home/httpd/linuxworld/news/2007/111207-hash.html}{hash}
+\item \hrefn{http://web.media.mit.edu/.push/why-ai-failed.html}{Why AI Failed -- The Past 10 Years}
+\item \hrefn{http://books.google.se/books?id=DWZc9Ti.vBwC.pg=PA339.lpg=PA339.dq=syntactic+hashing.source=bl.ots=2R4oZzGX14.sig=6QWVJQIUxcx1XkEh3N0LkCk8yVM.hl=sv.ei=hkuVStvbAYTs-AbntfnyDQ.sa=X.oi=book.result.ct=result.resnum=1\#v=onepage.q=.f=false}{Structural,
+    Syntactic, and Statistical Pattern Recognition: Joint IAPR}
+\item \hrefn{http://lwn.net/Articles/370717/\#Comments}{LCA: Static analysis with GCC plugins}
+\item mozilla Dehydra
+\item \hrefn{http://en.wikipedia.org/wiki/Cyc}{C}
+\item \hrefn{http://en.wikipedia.org/wiki/Magnet\_URI\_scheme}{Magnet URI scheme}
+
+\end{itemize}
+
+% \end{multicols}
+
+\end{document}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
