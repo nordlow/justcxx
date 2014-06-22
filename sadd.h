@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-/*! \name Saturated Signed Addition: \p a - \p b */
+/*! \name Saturated Signed Addition: \p a + p b */
 /// @{
 
 static inline spure int8_t int8_sadd_alt(int8_t a, int8_t b) {
@@ -56,7 +56,7 @@ static inline spure int64_t int64_sadd(int64_t a, int64_t b) {
 }
 /// @}
 
-/*! \name Saturated Unsigned Addition: \p a - \p b */
+/*! \name Saturated Unsigned Addition: \p a + p b */
 /// @{
 
 static inline spure uint8_t uint8_sadd_alt(uint8_t a, uint8_t b) {
@@ -68,7 +68,7 @@ static inline spure uint8_t  uint8_sadd (uint8_t a,  uint8_t b)  { return (uint8
 static inline spure uint16_t uint16_sadd(uint16_t a, uint16_t b) { return (uint16_t)((UINT16_MAX - a < b) ? UINT16_MAX : a + b); }
 static inline spure uint64_t uint64_sadd(uint64_t a, uint64_t b) { return (uint64_t)((UINT64_MAX - a < b) ? UINT64_MAX : a + b); }
 
-/*! \name Saturated Unsigned Addition: \p a - \p b
+/*! \name Saturated Unsigned Addition: \p a + p b
   * \see http://stackoverflow.com/a/3431717/683710
   */
 static inline spure uint32_t uint32_sadd(uint32_t a, uint32_t b) {
@@ -113,7 +113,7 @@ static inline spure uint32_t uint32_sadd_alt(uint32_t a, uint32_t b) {
 #endif
 }
 
-/*! \name Saturated Unsigned Addition 4 uint32: \p a - \p b
+/*! \name Saturated Unsigned Addition 4 uint32: \p a + p b
  * \see http://stackoverflow.com/a/121323/683710
  */
 static inline spure uint32_t uint32_sadd_4_uint8(uint32_t x, uint32_t y) {
@@ -128,7 +128,7 @@ static inline spure uint32_t uint32_sadd_4_uint8(uint32_t x, uint32_t y) {
   return (x ^ t0) | t1;
 }
 
-/*! \name Saturated Unsigned Addition 2 uint16: \p a - \p b
+/*! \name Saturated Unsigned Addition 2 uint16: \p a + p b
  * \see http://stackoverflow.com/a/121323/683710
  */
 static inline spure uint32_t uint32_sadd_2_uint16(uint32_t x, uint32_t y) {
