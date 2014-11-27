@@ -299,26 +299,26 @@ env.Clone(LINKFLAGS = '-fopenmp').Program('t_sort.out',
                                           ['t_sort.cpp', libcutils ],
                                           LIBS = [ 'rt', 'tbb', 'pthread'])
 
-env.Clone().Program('t_poly.out',
-                    ['t_poly.cpp', 'poly.cpp', 'sinefit.cpp', libcutils ],
-                    LIBS = [ 'armadillo', 'pthread'],
-                    CPPPATH = NETTLE_INCLUDE + ARMA_INCLUDE,
-                    LIBPATH = NETTLE_LIBPATH + ARMA_LIBPATH + BOOST_LIBPATH)
+env.Program('t_poly.out',
+            ['t_poly.cpp', 'poly.cpp', 'sinefit.cpp', libcutils ],
+            LIBS = [ 'armadillo', 'pthread'],
+            CPPPATH = NETTLE_INCLUDE + ARMA_INCLUDE,
+            LIBPATH = NETTLE_LIBPATH + ARMA_LIBPATH + BOOST_LIBPATH)
 
-env.Clone().Program('t_linterpol.out',
-                    ['t_linterpol.cpp' ],
-                    LIBS = [ 'armadillo', 'pthread'],
-                    CPPPATH = ARMA_INCLUDE,
-                    LIBPATH = ARMA_LIBPATH)
+env.Program('t_linterpol.out',
+            ['t_linterpol.cpp' ],
+            LIBS = [ 'armadillo', 'pthread'],
+            CPPPATH = ARMA_INCLUDE,
+            LIBPATH = ARMA_LIBPATH)
 
-env.Clone().Program('t_armadillo.out',
-                    ['t_armadillo.cpp' ],
-                    LIBS = [ 'armadillo', 'pthread'],
-                    CPPPATH = NETTLE_INCLUDE + ARMA_INCLUDE,
-                    LIBPATH = NETTLE_LIBPATH + ARMA_LIBPATH + BOOST_LIBPATH)
+env.Program('t_armadillo.out',
+            ['t_armadillo.cpp' ],
+            LIBS = [ 'armadillo', 'pthread'],
+            CPPPATH = NETTLE_INCLUDE + ARMA_INCLUDE,
+            LIBPATH = NETTLE_LIBPATH + ARMA_LIBPATH + BOOST_LIBPATH)
 
-env.Clone().Program('t_outer_sphere.out',
-                    ['t_outer_sphere.cpp' ])
+env.Program('t_outer_sphere.out',
+            ['t_outer_sphere.cpp' ])
 
 env.Clone(CPPPATH = BOOST_ENDIAN_INCLUDE).Program('t_boost_endian.out',
                                                   ['t_boost_endian.cpp' ])
@@ -326,28 +326,28 @@ env.Clone(CPPPATH = BOOST_ENDIAN_INCLUDE).Program('t_boost_endian.out',
 env.Clone(LIBS = ['boost_filesystem', 'boost_system']).Program('t_boost_fs.out',
                                                                ['t_boost_fs.cpp' ])
 
-env.Clone().Program('t_type_traits.out',
-                    ['t_type_traits.cpp' ])
+env.Program('t_type_traits.out',
+            ['t_type_traits.cpp' ])
 
-env.Clone().Program('t_boost_accumulators.out',
-                    ['t_boost_accumulators.cpp' ])
+env.Program('t_boost_accumulators.out',
+            ['t_boost_accumulators.cpp' ])
 
-env.Clone().Program('t_boost_bimap.out',
-                    ['t_boost_bimap.cpp' ])
+env.Program('t_boost_bimap.out',
+            ['t_boost_bimap.cpp' ])
 
-env.Clone().Program('t_boost_random.out',
-                    ['t_boost_random.cpp' ])
+env.Program('t_boost_random.out',
+            ['t_boost_random.cpp' ])
 
-env.Clone().Program('t_show.out',
-                    ['t_show.cpp' ])
+env.Program('t_show.out',
+            ['t_show.cpp' ])
 
-env.Clone().Program('t_median.out',
-                    ['t_median.cpp' ])
+env.Program('t_median.out',
+            ['t_median.cpp' ])
 
 env.Clone(LIBS = [libcutils]).Program('t_histogram.out',
                                       ['t_histogram.cpp', ioredirect])
 
-env.Clone().Program('t_rand.out', ['t_rand.cpp', rand_cxx])
+env.Program('t_rand.out', ['t_rand.cpp', rand_cxx])
 
 env.Clone(LIBS = [ 'nettle', 'rt', 'crypto' ],
           CPPPATH = NETTLE_INCLUDE,
@@ -361,8 +361,8 @@ env.Clone(CPPPATH = BOOST_PROCESS_INCLUDE,
           LIBS = ['boost_filesystem', 'boost_system']).Program('t_boost_process.out',
                                                                ['t_boost_process.cpp'])
 
-env.Clone().Program('t_geometry.out',
-                    ['t_geometry.cpp', 'geometry/box.cpp', layout])
+env.Program('t_geometry.out',
+            ['t_geometry.cpp', 'geometry/box.cpp', layout])
 
 env.Clone(LIBS = ['elf']).Program('t_libelf.out',['t_libelf.cpp'])
 
@@ -374,5 +374,5 @@ env.Program('t_semnet.out',
                      'pthread', 'nettle', 'gmp'], # , 'boost_iostreams'
             LIBPATH = NETTLE_LIBPATH + ARMA_LIBPATH + BOOST_LIBPATH)
 
-# env.Clone().Program('t_boost_concept_requires.out',
+# env.Program('t_boost_concept_requires.out',
 #                     ['t_boost_concept_requires.cpp' ])
