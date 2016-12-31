@@ -40,7 +40,7 @@ def scons_hardlink(target, source, env):
 useClang = False                 # Flag to use the Clang Compiler instead of GCC
 useNative = True                # Flag to use Native Code Generation when possible
 useGoldLinker = True            # Use ld.gold instead of ld.bfd
-useColors = False            # Colorize Compilation Output (GCC 4.9)
+useColors = True            # Colorize Compilation Output (GCC 4.9)
 useTime = False                  # Time all Compilations
 STD_C = 'gnu99'                 # C Standard: gnu99, c99
 STD_CXX = 'gnu++11'             # C++ Standard: gnu++11, gnu++1y
@@ -48,9 +48,9 @@ STD_CXX = 'gnu++11'             # C++ Standard: gnu++11, gnu++1y
 HOME = os.environ['HOME']       # home directory
 
 # C Standard
-STD_CFLAGS = [ '-std=' + STD_C ]
+STD_CFLAGS = [ '-fno-diagnostics-show-caret', '-std=' + STD_C ]
 # C++ Standard
-STD_CXXFLAGS = [ '-std=' + STD_CXX ]
+STD_CXXFLAGS = [ '-fno-diagnostics-show-caret', '-std=' + STD_CXX ]
 
 # Pick Compilers
 if useClang:

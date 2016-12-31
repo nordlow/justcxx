@@ -104,7 +104,8 @@ template<class T> std::array<T,2>& sort(std::array<T,2>& a) { ip_sort(a[0], a[1]
  * \complexity[time]: 3 CMP
  * \complexity[code]: 1 CMP, 3 MOV
  */
-template<class T> void ip_sort(T& a, T& b, T& c) {
+template<class T> void ip_sort(T& a, T& b, T& c)
+{
     if (b < c)
         if (a < c)
             if (a < b)

@@ -1,8 +1,0 @@
-"9338c043eb85c2ddad2cf787c9070cf762f88204"
-[cl-struct-undo-tree [nil ([nil ([nil ([nil (#1=[nil nil ((#("
-" 0 1 (fontified t c-in-sws t c-is-sws t)) . 149)) nil (20781 11618 628433 505000) 0 nil]) ((#("
-" 0 1 (fontified t c-in-sws t c-is-sws t)) . 338)) nil (20781 11618 628440 996000) 0 nil]) ((#("
-/* ---------------------------- Group Separator ---------------------------- */
-" 0 1 (fontified t c-in-sws t) 1 2 (fontified t face font-lock-comment-delimiter-face c-in-sws t) 2 4 (fontified t face font-lock-comment-delimiter-face c-in-sws t) 4 78 (fontified t face font-lock-comment-face c-in-sws t) 78 80 (fontified t face font-lock-comment-delimiter-face c-in-sws t) 80 81 (fontified t c-in-sws t)) . 457) 538 (t 20781 11614 321091 487000) (undo-tree-id10 . -81) (undo-tree-id11 . -81)) nil (20781 11618 628456 393000) 0 nil]) ((#("
-/* ========================================================================= */
-" 0 1 (fontified t) 1 4 (fontified t face font-lock-comment-delimiter-face) 4 78 (fontified t face font-lock-comment-face) 78 80 (fontified t face font-lock-comment-delimiter-face) 80 81 (fontified t)) . 3498) 3579 (t 20564 40175 597673 709000) (undo-tree-id0 . -70) (undo-tree-id1 . -4) (undo-tree-id2 . -4) (undo-tree-id3 . -70) (undo-tree-id4 . -4) (undo-tree-id5 . -70) (undo-tree-id6 . -70) (undo-tree-id7 . -70) (undo-tree-id8 . -81) (undo-tree-id9 . -81)) nil (20781 11614 265831 277000) 0 nil]) nil nil (20781 11614 265847 399000) 0 nil] #1# 324 4 nil]
