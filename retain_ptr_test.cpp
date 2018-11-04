@@ -27,7 +27,7 @@ struct S_traits final
     static void decrement (S* x) noexcept
     {
         x->_rc -= 1;
-        cout << "decrement called refcount: " << x->_rc << endl;
+        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
         if (x->_rc == 0) { delete x; }
     }
 };
