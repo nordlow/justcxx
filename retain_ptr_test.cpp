@@ -23,14 +23,14 @@ struct S_traits final {
 };
 
 #include "sg14/memory.hpp"
-using RP = sg14::retain_ptr<S, S_traits>;
+using SP = sg14::retain_ptr<S, S_traits>;
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char * argv[],
          __attribute__((unused)) const char * envp[])
 {
     cout << "sizeof(S): " << sizeof(S) << endl;
-    cout << "sizeof(RP): " << sizeof(RP) << endl;
-    auto rp = RP(new S(42));
+    cout << "sizeof(SP): " << sizeof(SP) << endl;
+    auto rp = SP(new S(42));
     return 0;
 }
