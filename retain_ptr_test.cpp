@@ -10,7 +10,7 @@ public:
     S(int x_) : x(x_) {}
     ~S()
     {
-        cout << "dtor" << endl;
+        cout << "~S() called" << endl;
     }
 public:
     int x;
