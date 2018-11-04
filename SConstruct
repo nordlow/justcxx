@@ -43,7 +43,7 @@ useGoldLinker = True            # Use ld.gold instead of ld.bfd
 useColors = True            # Colorize Compilation Output (GCC 4.9)
 useTime = False                  # Time all Compilations
 STD_C = 'gnu99'                 # C Standard: gnu99, c99
-STD_CXX = 'gnu++11'             # C++ Standard: gnu++11, gnu++1y
+STD_CXX = 'gnu++17'
 
 HOME = os.environ['HOME']       # home directory
 
