@@ -17,9 +17,18 @@ public:
     mutable unsigned int _refcount = 1;
 };
 
-struct S_traits final {
-    static void increment (S* x) noexcept { x->_refcount += 1; }
-    static void decrement (S* x) noexcept { x->_refcount -= 1; }
+struct S_traits final
+{
+    static void increment (S* x) noexcept
+    {
+        cout << "increment called" << endl;
+        x->_refcount += 1;
+    }
+    static void decrement (S* x) noexcept
+    {
+        cout << "decrement called" << endl;
+        x->_refcount -= 1;
+    }
 };
 
 #include "sg14/memory.hpp"
