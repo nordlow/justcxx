@@ -14,7 +14,7 @@ public:
     }
 public:
     int x;
-    mutable unsigned int _refcount = 1;
+    mutable unsigned int _rc = 1;
 };
 
 struct S_traits final
@@ -22,12 +22,13 @@ struct S_traits final
     static void increment (S* x) noexcept
     {
         cout << "increment called" << endl;
-        x->_refcount += 1;
+        x->_rc += 1;
     }
     static void decrement (S* x) noexcept
     {
-        cout << "decrement called" << endl;
-        x->_refcount -= 1;
+        x->_rc -= 1;
+        cout << "decrement called refcount: " << x->_rc << endl;
+        if (x->_rc == 0) { delete x; }
     }
 };
 
@@ -40,6 +41,8 @@ int main(__attribute__((unused)) int argc,
 {
     cout << "sizeof(S): " << sizeof(S) << endl;
     cout << "sizeof(SP): " << sizeof(SP) << endl;
-    auto rp = SP(new S(42));
+    {
+        auto rp = SP(new S(42));
+    }
     return 0;
 }
