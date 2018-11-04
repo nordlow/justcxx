@@ -10,7 +10,7 @@ public:
     S(int x_) : x(x_) {}
     ~S()
     {
-        cout << "~S() called" << endl;
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
     }
 public:
     int x;
@@ -21,7 +21,7 @@ struct S_traits final
 {
     static void increment (S* x) noexcept
     {
-        cout << "increment called" << endl;
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
         x->_rc += 1;
     }
     static void decrement (S* x) noexcept
