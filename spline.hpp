@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 typedef double Td;
 
 namespace splines {
@@ -30,7 +32,7 @@ namespace splines {
   int d3_fs ( Td a1[], Td a2[], Td a3[], int n, Td b[], Td x[] );
   Td *d3_mxv ( int n, Td a[], Td x[] );
   Td *d3_np_fs ( int n, Td a[], Td b[] );
-  void d3_print ( int n, Td a[], string title );
+  void d3_print ( int n, Td a[], std::string title );
   void d3_print_some ( int n, Td a[], int ilo, int jlo, int ihi, int jhi );
   Td *d3_uniform ( int n, int *seed );
   void data_to_dif ( int ntab, Td xtab[], Td ytab[], Td diftab[] );
@@ -57,12 +59,12 @@ namespace splines {
   Td *r8vec_even ( int n, Td alo, Td ahi );
   Td *r8vec_indicator ( int n );
   void r8vec_order_type ( int n, Td x[], int *order );
-  void r8vec_print ( int n, Td a[], string title );
+  void r8vec_print ( int n, Td a[], std::string title );
   void r8vec_sort_bubble_a ( int n, Td a[] );
   Td *r8vec_uniform ( int n, Td b, Td c, int *seed );
   int r8vec_unique_count ( int n, Td a[], Td tol );
   void r8vec_zero ( int n, Td a[] );
-  int s_len_trim ( string s );
+  int s_len_trim ( std::string s );
   Td spline_b_val ( int ndata, Td tdata[], Td ydata[], Td tval );
   Td spline_beta_val ( Td beta1, Td beta2, int ndata, Td tdata[],
                        Td ydata[], Td tval );
@@ -97,4 +99,3 @@ namespace splines {
   void timestamp ( );
 
 }
-
