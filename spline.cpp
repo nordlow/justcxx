@@ -68,7 +68,7 @@ Td basis_function_b_val ( Td tdata[], Td tval )
   int left;
   int right;
   Td u;
-  Td yval;
+  Td yval = 0;
 
   if ( tval <= tdata[0] || tdata[NDATA-1] <= tval )
   {
@@ -185,7 +185,7 @@ Td basis_function_beta_val ( Td beta1, Td beta2, Td tdata[],
   int left;
   int right;
   Td u;
-  Td yval;
+  Td yval = 0;
 
   if ( tval <= tdata[0] || tdata[NDATA-1] <= tval )
   {
@@ -952,7 +952,6 @@ Td basis_matrix_tmp ( int left, int n, Td mbasis[], int ndata,
   int first;
   int i;
   int j;
-  Td temp;
   Td tm;
   Td *tvec;
   Td yval;
@@ -3194,7 +3193,7 @@ Td pchst ( Td arg1, Td arg2 )
 //    +1.0, if ARG1 and ARG2 are of the same sign.
 //
 {
-  Td value;
+  Td value = 0;
 
   if ( arg1 == 0.0 )
   {
@@ -5665,9 +5664,9 @@ Td spline_overhauser_uni_val ( int ndata, Td tdata[], Td ydata[],
 //
 {
   int left;
-  Td *mbasis;
+  Td *mbasis = nullptr;
   int right;
-  Td yval;
+  Td yval = 0;
 //
 //  Check NDATA.
 //
