@@ -20,8 +20,8 @@ struct S_traits final
 {
     static void increment (S* x) noexcept
     {
-        cout << __PRETTY_FUNCTION__ << ":" << endl;
         x->_rc += 1;
+        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
     }
     static void decrement (S* x) noexcept
     {
@@ -40,8 +40,7 @@ int main(__attribute__((unused)) int argc,
 {
     cout << "sizeof(S): " << sizeof(S) << endl;
     cout << "sizeof(SP): " << sizeof(SP) << endl;
-    {
-        auto rp = SP(new S(42));
-    }
+    auto x = SP(new S(42));
+    auto y = x;
     return 0;
 }
