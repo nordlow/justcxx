@@ -13,8 +13,8 @@ void sort_subrange(I begin, I end,
     if (sub_begin == sub_end) { return; }
     if (sub_begin != begin)
     {
-        nth_element(begin, sub_begin, end);
+        std::nth_element(begin, sub_begin, end);
         ++sub_begin;
     }
-    partial_sort(sub_begin, sub_begin, end);
+    std::partial_sort(sub_begin, sub_begin, end);
 }
