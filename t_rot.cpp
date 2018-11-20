@@ -16,7 +16,13 @@ int main(__attribute__((unused)) int argc,
     const uint64_t x = 1;
     const auto n = 64;
 
+    assert(rotl64(x, 1) == 2);
+    assert(rotl64(x, 2) == 4);
+    assert(rotl64(x, 3) == 8);
+    assert(rotl64(x, 4) == 16);
+
     assert(rotl64(x, 64) == 1);
+
     for (size_t i = 0; i != n; ++i)
     {
         assert(rotr64(rotl64(x, i), i) == 1);
