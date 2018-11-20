@@ -12,7 +12,6 @@
 #endif
 
 #include "inttypes.h"
-#include <limits.h>   // for CHAR_BIT
 
 #ifdef __LP64__
 
@@ -20,7 +19,7 @@ inline
 uint64_t rotl64(uint64_t x, unsigned n)
 {
 #ifdef __clang__
-  const unsigned int mask = (CHAR_BIT*sizeof(x) - 1);  // assumes width is a power of 2.
+  const unsigned int mask = (8*sizeof(x) - 1); // assumes width is a power of 2.
   // assert ( (n<=mask) &&"rotate by type width or more");
   n &= mask;
   return (x << n) | (x >> ((-n)&mask));
@@ -32,7 +31,7 @@ uint64_t rotl64(uint64_t x, unsigned n)
 inline
 uint64_t rotr64(uint64_t x, unsigned n) {
 #ifdef __clang__
-  const unsigned int mask = (CHAR_BIT*sizeof(x) - 1);
+  const unsigned int mask = (8*sizeof(x) - 1);
   // assert ( (n<=mask) &&"rotate by type width or more");
   n &= mask;
   return (x >> n) | (x << ((-n)&mask));
