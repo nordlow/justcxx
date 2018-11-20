@@ -20,6 +20,7 @@ int main(__attribute__((unused)) int argc,
     for (size_t i = 0; i != n; ++i)
     {
         assert(rotr64(rotl64(x, i), i) == 1);
+        assert(rotl64(rotr64(x, i), i) == 1);
     }
 
     return 0;
