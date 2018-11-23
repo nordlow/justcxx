@@ -11,28 +11,33 @@ using std::endl;
 using std::hex;
 using std::dec;
 
-using SharedInt = std::shared_ptr<const int>;
+using Key = int;
+using SharedKey = std::shared_ptr<const Key>;
 
-inline bool operator == (const SharedInt &a,
-                         const int *b)
+inline bool operator == (const SharedKey &a,
+                         const Key *b)
 {
     return (a.get() == b);
 }
 
-inline bool operator == (const int *a,
-                         const SharedInt &b)
+inline bool operator == (const Key *a,
+                         const SharedKey &b)
 {
     return (a == b.get());
 }
 
 int main(int argc, const char *argv[], const char *envp[])
 {
-    std::unordered_map<SharedInt, double> up;
+    std::unordered_map<SharedKey, double> up;
 
-    SharedInt si;
+    SharedKey si = nullptr;
+    const Key *ip = nullptr;
+
+    const bool ok1 = (si == ip);
+    const bool ok2 = (ip == si);
+
     auto it1 = up.find(si);
 
-    const int *ip;
     auto it2 = up.find(ip);
 
     return 0;
