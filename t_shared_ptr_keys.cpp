@@ -1,15 +1,5 @@
-/*! \file f.cpp
- * \brief
- */
-
-#include <iostream>
 #include <memory>
 #include <unordered_map>
-
-using std::cout;
-using std::endl;
-using std::hex;
-using std::dec;
 
 using Key = int;
 using SharedKey = std::shared_ptr<const Key>;
