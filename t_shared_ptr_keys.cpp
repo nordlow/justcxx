@@ -6,21 +6,16 @@
 using namespace std;
 
 using T = size_t;
-using SharedT = std::shared_ptr<const T>;
+using SCT = shared_ptr<const T>; // shared const T
 
-SharedT makeT(int x)
-{
-    return std::make_shared<T>(x);
-}
-
-inline bool operator == (const SharedT &a,
+inline bool operator == (const SCT &a,
                          const T *b)
 {
     return (a.get() == b);
 }
 
 inline bool operator == (const T *a,
-                         const SharedT &b)
+                         const SCT &b)
 {
     return (a == b.get());
 }
@@ -28,15 +23,15 @@ inline bool operator == (const T *a,
 int main(int argc, const char *argv[], const char *envp[])
 {
     T value = 42;
-    const auto x = makeT(value);
+    const auto x = make_shared<T>(value);
     const auto first = (reinterpret_cast<const size_t *const*>(&x))[0];
     const auto second = (reinterpret_cast<const size_t *const*>(&x))[1];
     assert(*first == value);    // value first
     cout << *second << endl;
 
-    std::unordered_set<SharedT> up;
+    unordered_set<SCT> up;
 
-    SharedT si = nullptr;
+    SCT si = nullptr;
     const T *ip = nullptr;
 
     const bool ok1 = (si == ip);
@@ -44,9 +39,9 @@ int main(int argc, const char *argv[], const char *envp[])
 
     auto it1 = up.find(si);
 
-    size_t faked_sharedT[sizeof(SharedT) / 8] = {0, 0};
+    size_t faked_sharedT[sizeof(SCT) / 8] = {0, 0};
 
-    auto it2 = up.find(*reinterpret_cast<const SharedT*>(&faked_sharedT));     // TODO make compile
+    auto it2 = up.find(*reinterpret_cast<const SCT*>(&faked_sharedT));     // TODO make compile
 
     return 0;
 }
