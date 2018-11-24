@@ -3,17 +3,18 @@
 using std::cout;
 using std::endl;
 
-class S
-{
+class S {
 public:
-    S(int x_) : x(x_) {}
-    ~S()
-    {
-        cout << __PRETTY_FUNCTION__ << ":" << endl;
-    }
+  S(int x_) : x(x_) {
+      cout << __PRETTY_FUNCTION__ << ":" << endl;
+  }
+  ~S()
+  {
+      cout << __PRETTY_FUNCTION__ << ":" << endl;
+  }
 public:
-    int x;
-    mutable unsigned int _rc = 1;
+  int x;
+  mutable unsigned int _rc = 1;
 };
 
 struct S_traits final
