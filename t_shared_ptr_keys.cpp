@@ -25,13 +25,14 @@ void test()
     const bool ok2 = (ip == si);
 }
 
-
 int main(int argc, const char *argv[], const char *envp[])
 {
     T value = 42;
     const auto x = make_shared<T>(value);
-    const auto value_heap_ptr = (reinterpret_cast<const size_t *const*>(&x))[0];
-    const auto counter_ptr = (reinterpret_cast<const size_t *const*>(&x))[1];
+
+    const auto value_heap_ptr = (reinterpret_cast<const size_t *const*>(&x))[0]; // first word is pointer to data
+    const auto counter_ptr = (reinterpret_cast<const size_t *const*>(&x))[1]; // second word is pointer to counter
+
     assert(*value_heap_ptr == value);
 
     unordered_set<SCT> up;
