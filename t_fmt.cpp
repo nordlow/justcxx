@@ -30,7 +30,7 @@ int main(__attribute__((unused)) int argc,
     for (const auto &e : v) { print("{},", e); }
     print("\n");
 
-    erase_if(v, [](int x){return x == 12;});
+    erase_if(v, [](int x) { return x == 12; });
 
     for (const auto &e : v) { print("{},", e); }
     print("\n");
@@ -40,7 +40,7 @@ int main(__attribute__((unused)) int argc,
     for (const auto &e : s) { print("{},", e); }
     print("\n");
 
-    erase_if(s, [](int x){return x == 12;});
+    erase_if(s, [](int x) { return x == 12; });
 
     for (const auto &e : s) { print("{},", e); }
     print("\n");
