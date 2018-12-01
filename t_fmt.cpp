@@ -30,7 +30,7 @@ int main(__attribute__((unused)) int argc,
     erase_if(v, [](int x) { return x == 12; });
     print("{}\n", join(v, ","));
 
-    unordered_set<int> s = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
+    unordered_set<int> s = {11, 12, 13};
     print("{}\n", join(s, ","));
     erase_if(s, [](int x) { return x == 12; });
     print("{}\n", join(s, ","));
