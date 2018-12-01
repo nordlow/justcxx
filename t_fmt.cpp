@@ -1,5 +1,5 @@
 /*! \file t_fmt.cpp
- * \brief
+ * \brief Test fmtlib.net.
  */
 
 #include <string>
@@ -16,7 +16,7 @@ int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char * envp[])
 {
     // fmt::format("The answer is {}.", 42);
-    fmt::print(stderr, "System error code = {}\n", errno);
+    // fmt::print(stderr, "System error code = {}\n", errno);
 
     vector<int> v = {11, 12, 13};
     for (const auto &e : v)
