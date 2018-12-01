@@ -8,14 +8,13 @@
 #include <experimental/vector>
 #include <unordered_set>
 #include <experimental/unordered_set>
+using namespace std;
+using namespace std::experimental;
 
 // http://fmtlib.net: sudo apt install libfmt-dev
 #include "fmt/format.h"
 #pragma comment(lib, "fmt") // https://stackoverflow.com/questions/12821391/c-visual-studio-linking-using-pragma-comment
 using namespace fmt;
-
-using namespace std;
-using namespace std::experimental;
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char * argv[],
