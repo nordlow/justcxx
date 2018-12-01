@@ -6,7 +6,6 @@
 #include <cassert>
 #include <vector>
 #include <experimental/vector>
-
 #include <unordered_set>
 #include <experimental/unordered_set>
 
