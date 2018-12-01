@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <experimental/unordered_set>
 
-// http://fmtlib.net
+// http://fmtlib.net: sudo apt install libfmt-dev
 #include "fmt/format.h"
 #pragma comment(lib, "fmt") // https://stackoverflow.com/questions/12821391/c-visual-studio-linking-using-pragma-comment
 
