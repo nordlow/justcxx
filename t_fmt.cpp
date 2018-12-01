@@ -26,22 +26,22 @@ int main(__attribute__((unused)) int argc,
 
     vector<int> v = {11, 12, 13};
 
-    for (const auto &e : v) { fmt::print(stdout, "{},", e); }
+    for (const auto &e : v) { fmt::print("{},", e); }
     fmt::print("\n");
 
     erase_if(v, [](int x){return x == 12;});
 
-    for (const auto &e : v) { fmt::print(stdout, "{},", e); }
+    for (const auto &e : v) { fmt::print("{},", e); }
     fmt::print("\n");
 
     unordered_set<int> s = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
 
-    for (const auto &e : s) { fmt::print(stdout, "{},", e); }
+    for (const auto &e : s) { fmt::print("{},", e); }
     fmt::print("\n");
 
     erase_if(s, [](int x){return x == 12;});
 
-    for (const auto &e : s) { fmt::print(stdout, "{},", e); }
+    for (const auto &e : s) { fmt::print("{},", e); }
     fmt::print("\n");
 
     return 0;
