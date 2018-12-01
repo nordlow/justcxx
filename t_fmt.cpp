@@ -3,7 +3,6 @@
  */
 
 #include <string>
-
 #include <cassert>
 #include <vector>
 #include <experimental/vector>
