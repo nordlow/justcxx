@@ -27,7 +27,6 @@ int main(__attribute__((unused)) int argc,
 
     vector<int> v = {11, 12, 13};
     print("{}\n", join(v, ","));
-    print("\n");
     erase_if(v, [](int x) { return x == 12; });
     print("{}\n", join(v, ","));
 
