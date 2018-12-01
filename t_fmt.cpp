@@ -26,24 +26,15 @@ int main(__attribute__((unused)) int argc,
     // print(stderr, "System error code = {}\n", errno);
 
     vector<int> v = {11, 12, 13};
-
-    for (const auto &e : v) { print("{},", e); }
+    print("{}\n", join(v, ","));
     print("\n");
-
     erase_if(v, [](int x) { return x == 12; });
-
-    for (const auto &e : v) { print("{},", e); }
-    print("\n");
+    print("{}\n", join(v, ","));
 
     unordered_set<int> s = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
-
-    for (const auto &e : s) { print("{},", e); }
-    print("\n");
-
+    print("{}\n", join(s, ","));
     erase_if(s, [](int x) { return x == 12; });
-
-    for (const auto &e : s) { print("{},", e); }
-    print("\n");
+    print("{}\n", join(s, ","));
 
     return 0;
 }
