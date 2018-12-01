@@ -13,6 +13,7 @@
 // http://fmtlib.net: sudo apt install libfmt-dev
 #include "fmt/format.h"
 #pragma comment(lib, "fmt") // https://stackoverflow.com/questions/12821391/c-visual-studio-linking-using-pragma-comment
+using namespace fmt;
 
 using namespace std;
 using namespace std::experimental;
@@ -21,28 +22,28 @@ int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char * argv[],
          __attribute__((unused)) const char * envp[])
 {
-    // fmt::format("The answer is {}.", 42);
-    // fmt::print(stderr, "System error code = {}\n", errno);
+    // format("The answer is {}.", 42);
+    // print(stderr, "System error code = {}\n", errno);
 
     vector<int> v = {11, 12, 13};
 
-    for (const auto &e : v) { fmt::print("{},", e); }
-    fmt::print("\n");
+    for (const auto &e : v) { print("{},", e); }
+    print("\n");
 
     erase_if(v, [](int x){return x == 12;});
 
-    for (const auto &e : v) { fmt::print("{},", e); }
-    fmt::print("\n");
+    for (const auto &e : v) { print("{},", e); }
+    print("\n");
 
     unordered_set<int> s = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
 
-    for (const auto &e : s) { fmt::print("{},", e); }
-    fmt::print("\n");
+    for (const auto &e : s) { print("{},", e); }
+    print("\n");
 
     erase_if(s, [](int x){return x == 12;});
 
-    for (const auto &e : s) { fmt::print("{},", e); }
-    fmt::print("\n");
+    for (const auto &e : s) { print("{},", e); }
+    print("\n");
 
     return 0;
 }
