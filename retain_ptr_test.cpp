@@ -10,8 +10,12 @@ class Base
 public:
     Base()
     {
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
     }
-    virtual ~Base() = default;  // must be here
+    virtual ~Base()
+    {
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
+    }
     mutable unsigned int _rc = 1;
 };
 
@@ -23,7 +27,10 @@ public:
     {
         cout << __PRETTY_FUNCTION__ << ":" << endl;
     }
-    ~Sub() { cout << __PRETTY_FUNCTION__ << ":" << endl; }
+    virtual ~Sub() override
+    {
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
+    }
 public:
     int x;
 };
@@ -92,10 +99,13 @@ int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
          __attribute__((unused)) const char* envp[])
 {
-    cout << "sizeof(Sub): " << sizeof(Sub) << endl;
-    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
-    test_shared();
+    // cout << "sizeof(Sub): " << sizeof(Sub) << endl;
+    // cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
+
     test_retain_assign_from_rvalue();
     test_return_subclass();
+
+    test_shared();
+
     return 0;
 }
