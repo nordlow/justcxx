@@ -15,12 +15,12 @@ public:
 
 struct Base_traits final
 {
-    static void increment(Base* x) noexcept
+    static void increment(const Base* x) noexcept
     {
         x->_rc += 1;
         cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
     }
-    static void decrement(Base* x) noexcept
+    static void decrement(const Base* x) noexcept
     {
         x->_rc -= 1;
         cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
@@ -62,8 +62,8 @@ struct Sub_traits final
     }
 };
 
-using RetainBase = sg14::retain_ptr<Base, Base_traits>;
-using RetainSub = sg14::retain_ptr<Sub, Base_traits>;
+using RetainBase = sg14::retain_ptr<const Base, Base_traits>;
+using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
@@ -73,7 +73,6 @@ int main(__attribute__((unused)) int argc,
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
 
     auto sub = RetainSub(new Sub(42));
-
     auto base = RetainBase(new Base(42));
 
     return 0;
