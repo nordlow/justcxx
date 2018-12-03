@@ -11,6 +11,7 @@ public:
     Base()
     {
     }
+    virtual ~Base() {}
     mutable unsigned int _rc = 1;
 };
 
@@ -82,6 +83,7 @@ void test_retain()
     auto sub = RetainSub(new Sub(42));
     auto base = RetainBase(new Base());
     base = std::move(sub);
+    cout << "done assign" << endl;
 }
 
 int main(__attribute__((unused)) int argc,
