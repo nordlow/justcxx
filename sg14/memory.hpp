@@ -212,7 +212,7 @@ struct retain_ptr {
 
     template <class S, class = enable_if_sub<S>>
     retain_ptr& operator = (retain_ptr<S, R> &&that) {
-        *this = *reinterpret_cast<retain_ptr<T, R> *>(&that);
+        this->swap(*reinterpret_cast<retain_ptr<T, R> *>(&that));
         return *this;
     }
 
