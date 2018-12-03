@@ -80,7 +80,7 @@ void test_retain()
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     auto sub = RetainSub(new Sub(42));
     auto base = RetainBase(new Base());
-    // TODO make work: base = sub;
+    base = sub;
 }
 
 int main(__attribute__((unused)) int argc,
