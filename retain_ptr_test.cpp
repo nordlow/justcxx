@@ -11,7 +11,7 @@ public:
     Base()
     {
     }
-    virtual ~Base() = default;
+    virtual ~Base() = default;  // must be here
     mutable unsigned int _rc = 1;
 };
 
