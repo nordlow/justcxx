@@ -74,5 +74,7 @@ int main(__attribute__((unused)) int argc,
     auto sub = RetainSub(new Sub(42));
     auto base = RetainBase(new Base());
 
+    // TODO make work: base = sub;
+
     return 0;
 }
