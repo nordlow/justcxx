@@ -157,6 +157,9 @@ struct retain_ptr {
         traits_type
         >;
 
+    template <class U>
+    using enable_if_sub = std::enable_if_t<std::is_base_of_v<T, U>>;
+
     static constexpr bool CheckAction = std::disjunction_v<
         std::is_same<default_action, adopt_object_t>,
         std::is_same<default_action, retain_object_t>
@@ -206,9 +209,6 @@ struct retain_ptr {
         retain_ptr(std::move(that)).swap(*this);
         return *this;
     }
-
-    template <class U>
-    using enable_if_sub = std::enable_if_t<std::is_base_of_v<T, U>>;
 
     template <class S, class = enable_if_sub<S>>
     retain_ptr& operator = (retain_ptr<S, R> &&that) {
