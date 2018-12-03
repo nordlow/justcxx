@@ -28,6 +28,11 @@ public:
 
 void test_shared()
 {
+    using SharedBase = std::shared_ptr<const Base>;
+    using SharedSub = std::shared_ptr<const Sub>;
+    SharedBase base;
+    SharedSub sub;
+    base = sub;                 // compiles!
 }
 
 struct Base_traits final
