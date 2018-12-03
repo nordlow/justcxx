@@ -83,10 +83,10 @@ void test_retain_assign()
     cout << "done assign" << endl;
 }
 
-RetainBase test_retain_convert()
-{
-    RetainBase base = RetainSub(new Sub(42));
-}
+// RetainBase test_retain_convert()
+// {
+//     RetainBase base = RetainSub(new Sub(42));
+// }
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
@@ -96,6 +96,6 @@ int main(__attribute__((unused)) int argc,
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     test_shared();
     test_retain_assign();
-    test_retain_convert();
+    // test_retain_convert();
     return 0;
 }
