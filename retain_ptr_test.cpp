@@ -46,21 +46,22 @@ void test_shared()
 
 struct Base_traits final
 {
-    static void increment(const Base* x) noexcept
-    {
-        x->_rc += 1;
-        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
-    }
-    static void decrement(const Base* x) noexcept
-    {
-        x->_rc -= 1;
-        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
-        if (x->_rc == 0)
-        {
-            delete x;
-        }
-    }
+    static inline void increment(const Base* x) noexcept;
+    static inline void decrement(const Base* x) noexcept;
 };
+
+inline void Base_traits::increment(const Base* x) noexcept
+{
+    x->_rc += 1;
+    cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
+}
+
+inline void Base_traits::decrement(const Base* x) noexcept
+{
+    x->_rc -= 1;
+    cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
+    if (x->_rc == 0) { delete x; }
+}
 
 struct Sub_traits final
 {
@@ -86,6 +87,7 @@ using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 void test_retain_assign_from_rvalue()
 {
     auto base = RetainBase(new Base());
+    auto baseCopy = base;
     base = RetainSub(new Sub(42));
 }
 
