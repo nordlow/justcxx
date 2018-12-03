@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include "sg14/memory.hpp"
 
 using namespace std;
@@ -11,6 +12,23 @@ public:
     }
     mutable unsigned int _rc = 1;
 };
+
+class Sub : public Base
+{
+public:
+    Sub(int x_)
+        : Base(), x(x_)
+    {
+        cout << __PRETTY_FUNCTION__ << ":" << endl;
+    }
+    ~Sub() { cout << __PRETTY_FUNCTION__ << ":" << endl; }
+public:
+    int x;
+};
+
+void test_shared()
+{
+}
 
 struct Base_traits final
 {
@@ -28,19 +46,6 @@ struct Base_traits final
             delete x;
         }
     }
-};
-
-class Sub : public Base
-{
-public:
-    Sub(int x_)
-        : Base(), x(x_)
-    {
-        cout << __PRETTY_FUNCTION__ << ":" << endl;
-    }
-    ~Sub() { cout << __PRETTY_FUNCTION__ << ":" << endl; }
-public:
-    int x;
 };
 
 struct Sub_traits final
@@ -64,17 +69,20 @@ struct Sub_traits final
 using RetainBase = sg14::retain_ptr<const Base, Base_traits>;
 using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 
+void test_retain()
+{
+    cout << "sizeof(Sub): " << sizeof(Sub) << endl;
+    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
+    auto sub = RetainSub(new Sub(42));
+    auto base = RetainBase(new Base());
+    // TODO make work: base = sub;
+}
+
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
          __attribute__((unused)) const char* envp[])
 {
-    cout << "sizeof(Sub): " << sizeof(Sub) << endl;
-    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
-
-    auto sub = RetainSub(new Sub(42));
-    auto base = RetainBase(new Base());
-
-    // TODO make work: base = sub;
-
+    test_shared();
+    test_retain();
     return 0;
 }
