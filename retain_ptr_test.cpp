@@ -76,17 +76,17 @@ struct Sub_traits final
 using RetainBase = sg14::retain_ptr<const Base, Base_traits>;
 using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 
-void test_retain_assign()
+void test_retain_assign_from_rvalue()
 {
     auto base = RetainBase(new Base());
     base = RetainSub(new Sub(42));
     cout << "done assign" << endl;
 }
 
-// RetainBase test_retain_convert()
-// {
-//     RetainBase base = RetainSub(new Sub(42));
-// }
+RetainBase test_return_subclass()
+{
+    return RetainSub(new Sub(42));
+}
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
@@ -95,7 +95,7 @@ int main(__attribute__((unused)) int argc,
     cout << "sizeof(Sub): " << sizeof(Sub) << endl;
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     test_shared();
-    test_retain_assign();
-    // test_retain_convert();
+    test_retain_assign_from_rvalue();
+    test_return_subclass();
     return 0;
 }
