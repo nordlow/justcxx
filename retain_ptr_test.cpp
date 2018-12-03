@@ -78,18 +78,24 @@ using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 
 void test_retain_assign()
 {
-    cout << "sizeof(Sub): " << sizeof(Sub) << endl;
-    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     auto base = RetainBase(new Base());
     base = RetainSub(new Sub(42));
     cout << "done assign" << endl;
+}
+
+RetainBase test_retain_convert()
+{
+    RetainBase base = RetainSub(new Sub(42));
 }
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
          __attribute__((unused)) const char* envp[])
 {
+    cout << "sizeof(Sub): " << sizeof(Sub) << endl;
+    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     test_shared();
     test_retain_assign();
+    test_retain_convert();
     return 0;
 }
