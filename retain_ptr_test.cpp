@@ -62,8 +62,8 @@ struct Sub_traits final
     }
 };
 
-using RetainBase = sg14::retain_ptr<Base, Sub_traits>;
-using RetainSub = sg14::retain_ptr<Sub, Sub_traits>;
+using RetainBase = sg14::retain_ptr<Base, Base_traits>;
+using RetainSub = sg14::retain_ptr<Sub, Base_traits>;
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
@@ -71,7 +71,10 @@ int main(__attribute__((unused)) int argc,
 {
     cout << "sizeof(Sub): " << sizeof(Sub) << endl;
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
-    auto x = RetainSub(new Sub(42));
-    auto y = x;
+
+    auto sub = RetainSub(new Sub(42));
+
+    auto base = RetainBase(new Base(42));
+
     return 0;
 }
