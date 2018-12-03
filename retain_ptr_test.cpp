@@ -87,7 +87,6 @@ void test_retain_assign_from_rvalue()
 {
     auto base = RetainBase(new Base());
     base = RetainSub(new Sub(42));
-    cout << "done assign" << endl;
 }
 
 RetainBase test_return_subclass()
@@ -104,7 +103,6 @@ int main(__attribute__((unused)) int argc,
 
     test_retain_assign_from_rvalue();
     test_return_subclass();
-
     test_shared();
 
     return 0;
