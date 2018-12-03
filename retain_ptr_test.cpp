@@ -76,7 +76,7 @@ struct Sub_traits final
 using RetainBase = sg14::retain_ptr<const Base, Base_traits>;
 using RetainSub = sg14::retain_ptr<const Sub, Base_traits>;
 
-void test_retain()
+void test_retain_assign()
 {
     cout << "sizeof(Sub): " << sizeof(Sub) << endl;
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
@@ -90,6 +90,6 @@ int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* envp[])
 {
     test_shared();
-    test_retain();
+    test_retain_assign();
     return 0;
 }
