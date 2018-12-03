@@ -80,9 +80,8 @@ void test_retain()
 {
     cout << "sizeof(Sub): " << sizeof(Sub) << endl;
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
-    auto sub = RetainSub(new Sub(42));
     auto base = RetainBase(new Base());
-    base = std::move(sub);
+    base = RetainSub(new Sub(42));
     cout << "done assign" << endl;
 }
 
