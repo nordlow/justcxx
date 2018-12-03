@@ -1,4 +1,5 @@
 #include <iostream>
+#include "sg14/memory.hpp"
 
 using namespace std;
 
@@ -9,6 +10,25 @@ public:
     {
     }
     int _z = 1;
+    mutable unsigned int _rc = 1;
+};
+
+struct Base_traits final
+{
+    static void increment(Base* x) noexcept
+    {
+        x->_rc += 1;
+        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
+    }
+    static void decrement(Base* x) noexcept
+    {
+        x->_rc -= 1;
+        cout << __PRETTY_FUNCTION__ << ": rc=" << x->_rc << endl;
+        if (x->_rc == 0)
+        {
+            delete x;
+        }
+    }
 };
 
 class Sub : public Base
@@ -22,10 +42,9 @@ public:
     ~Sub() { cout << __PRETTY_FUNCTION__ << ":" << endl; }
 public:
     int x;
-    mutable unsigned int _rc = 1;
 };
 
-struct S_traits final
+struct Sub_traits final
 {
     static void increment(Sub* x) noexcept
     {
@@ -43,16 +62,16 @@ struct S_traits final
     }
 };
 
-#include "sg14/memory.hpp"
-using RP = sg14::retain_ptr<Sub, S_traits>;
+using RetainBase = sg14::retain_ptr<Base, Sub_traits>;
+using RetainSub = sg14::retain_ptr<Sub, Sub_traits>;
 
 int main(__attribute__((unused)) int argc,
          __attribute__((unused)) const char* argv[],
          __attribute__((unused)) const char* envp[])
 {
     cout << "sizeof(Sub): " << sizeof(Sub) << endl;
-    cout << "sizeof(RP): " << sizeof(RP) << endl;
-    auto x = RP(new Sub(42));
+    cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
+    auto x = RetainSub(new Sub(42));
     auto y = x;
     return 0;
 }
