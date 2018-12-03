@@ -195,7 +195,7 @@ struct retain_ptr {
         ptr { that.detach() }
     { }
 
-    // construct from sub-class
+    // construct from sub-class r-value ref
     template <class S, class = enable_if_sub<S>>
     retain_ptr (retain_ptr<S, R>&& that) noexcept :
         ptr { that.detach() }
@@ -216,7 +216,7 @@ struct retain_ptr {
         return *this;
     }
 
-    // assign from sub-class
+    // assign from sub-class r-value ref
     template <class S, class = enable_if_sub<S>>
     retain_ptr& operator = (retain_ptr<S, R> &&that) {
         reinterpret_cast<retain_ptr<T, R> *>(&that)->swap(*this);
