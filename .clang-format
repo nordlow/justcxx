@@ -1,0 +1,21 @@
+# Refs: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: WebKit
+IndentWidth: 4
+BreakBeforeBraces: Allman
+AlignAfterOpenBracket: Align
+
+# Disabled because too disturbing in c-modes in Emacs
+# AlignConsecutiveAssignments: true
+
+# this messes up some class declarations
+# AlignConsecutiveDeclarations: true
+
+AlignOperands: true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+
+AllowShortIfStatementsOnASingleLine: true
+
+AlwaysBreakTemplateDeclarations: MultiLine
