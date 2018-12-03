@@ -145,6 +145,9 @@ struct retain_ptr {
     using element_type = T;
     using traits_type = R;
 
+    template <class U>
+    using enable_if_sub = std::enable_if_t<std::is_base_of_v<T, U>>;
+
     using pointer = detected_or_t<
         add_pointer_t<element_type>,
         impl::has_pointer,
@@ -204,6 +207,13 @@ struct retain_ptr {
 
     retain_ptr& operator = (retain_ptr&& that) {
         retain_ptr(std::move(that)).swap(*this);
+        return *this;
+    }
+
+    template <class S, class = enable_if_sub<S>>
+    retain_ptr& operator = (retain_ptr<S, R> &&that) {
+        if (*this) { traits_type::decrement(this->get()); } // drop
+        ptr = that.detach();
         return *this;
     }
 
