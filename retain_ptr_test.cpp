@@ -6,10 +6,9 @@ using namespace std;
 class Base
 {
 public:
-    Base(int z) : _z(z)
+    Base()
     {
     }
-    int _z = 1;
     mutable unsigned int _rc = 1;
 };
 
@@ -35,7 +34,7 @@ class Sub : public Base
 {
 public:
     Sub(int x_)
-        : Base(42), x(x_)
+        : Base(), x(x_)
     {
         cout << __PRETTY_FUNCTION__ << ":" << endl;
     }
@@ -73,7 +72,7 @@ int main(__attribute__((unused)) int argc,
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
 
     auto sub = RetainSub(new Sub(42));
-    auto base = RetainBase(new Base(42));
+    auto base = RetainBase(new Base());
 
     return 0;
 }
