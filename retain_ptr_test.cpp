@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <iostream>
 #include "sg14/memory.hpp"
 
 using namespace std;
@@ -80,7 +81,7 @@ void test_retain()
     cout << "sizeof(RetainSub): " << sizeof(RetainSub) << endl;
     auto sub = RetainSub(new Sub(42));
     auto base = RetainBase(new Base());
-    base = sub;
+    base = std::move(sub);
 }
 
 int main(__attribute__((unused)) int argc,
