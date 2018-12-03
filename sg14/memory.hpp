@@ -212,8 +212,7 @@ struct retain_ptr {
 
     template <class S, class = enable_if_sub<S>>
     retain_ptr& operator = (retain_ptr<S, R> &&that) {
-        if (*this) { traits_type::decrement(this->get()); } // drop
-        ptr = that.detach();
+        *this = *reinterpret_cast<retain_ptr<T, R> *>(&that);
         return *this;
     }
 
