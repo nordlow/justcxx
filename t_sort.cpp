@@ -42,8 +42,8 @@ using std::endl;
 /*! Random Fill Container of Float Point Numbers. TODO: Merge with rand. */
 template<template<class E> class C, class T>
 inline void fill_random(C<typename std::enable_if<std::is_integral<T>::value,T>::type>& a,
-                        const T min = pnw::minof<T>(),
-                        const T max = pnw::maxof<T>()) {
+                        const T min = pnw::min_of<T>(),
+                        const T max = pnw::max_of<T>()) {
     std::mt19937 gen;
     std::uniform_int_distribution<T> dist(min, max);
     for (auto& i : a) { i = dist(gen); }
@@ -82,8 +82,8 @@ bench_and_verify_sorter(Function sort_function,
     std::vector<std::vector<T> > marks(nTries);
 
     // Randomize and its Range
-    std::pair<T,T> range(pnw::maxof<T>(),
-                         pnw::minof<T>());
+    std::pair<T,T> range(pnw::max_of<T>(),
+                         pnw::min_of<T>());
     for (auto& v : marks) {     // for each vector
         v.resize(numE);
         if (permutation) { randperm(v); }

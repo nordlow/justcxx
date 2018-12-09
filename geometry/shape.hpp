@@ -260,7 +260,7 @@ inline box<T,N> shape<T,N>::outer_box() const
 template<class T, std::size_t N>
 inline T shape<T,N>::get_distance_to(vec<T,N> a) const
 {
-    if (m_form == 0) { return pnw::maxof<T>(); }
+    if (m_form == 0) { return pnw::max_of<T>(); }
 
     switch (shtype.get_value()) {
     case BOX: return reinterpret_cast<const box<T,N>*>(m_form)->edge_distance_to(a);
@@ -289,7 +289,7 @@ inline T shape<T,N>::get_distance_to(vec<T,N> a) const
     default: break;
     }
 
-    return pnw::maxof<T>();
+    return pnw::max_of<T>();
 }
 
 template<class T, std::size_t N>

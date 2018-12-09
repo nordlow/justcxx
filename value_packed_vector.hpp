@@ -84,8 +84,8 @@ private:
     void reset(void) {
         m_dU = 0;
 
-        m_umin = pnw::maxof<T>();
-        m_umax = pnw::minof<T>();
+        m_umin = pnw::max_of<T>();
+        m_umax = pnw::min_of<T>();
         m_uors = 0;
 
         m_dP.type = PTYPE_NONE;
@@ -202,7 +202,7 @@ private:
             m_umin = std::min<uint64_t>(m_umin, *ui); // update minimum
             m_umax = std::max<uint64_t>(m_umax, *ui); // update maximum
 
-            if (m_umin != pnw::maxof<T>()) {
+            if (m_umin != pnw::max_of<T>()) {
                 uint64_t uoff = *ui - m_umin; // calculate offset
                 m_uors |= uoff;	// update bitwise offset sum
             }

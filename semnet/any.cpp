@@ -33,7 +33,7 @@ Any::complexity(bir mults) const
     if (bitsize() < bits) {
         return static_cast<size_t>(1) << bits;
     } else {
-        return pnw::maxof<size_t>();
+        return pnw::max_of<size_t>();
     }
 }
 

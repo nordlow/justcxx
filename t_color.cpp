@@ -32,7 +32,7 @@ int test_sadd(bool show_flag = false)
         // 4. FAILURE
         if (y >= a) { cout << "SUCCESS"; }
         else { cout << "FAILURE"; ret = -1; break; }
-        if (y == pnw::maxof<T>()) { cout << "(MAX) "; }
+        if (y == pnw::max_of<T>()) { cout << "(MAX) "; }
         cout << endl;
     }
     endline();
@@ -45,14 +45,14 @@ int test_ssub(bool show_flag = false)
     int ret = 0;                // status
     for (uint i = 1; i < 8 * sizeof(T); i++)
     {
-        T a = pnw::maxof<T>() / 4;      // one fourth of maximum
+        T a = pnw::max_of<T>() / 4;      // one fourth of maximum
         T b = (T)1 << i;        // 2-power i
         T y = ssub(a,b);
         cout << "a:" << a << " "
              << "b:" << b << " "
              << "ssub(a,b):" << y << " "
              << "a-b:" << (double)a-b << " ";
-        if (y == pnw::maxof<T>()) { cout << "(MAX) "; }
+        if (y == pnw::max_of<T>()) { cout << "(MAX) "; }
         else if (y <= a) { cout << "SUCCESS\n"; }
         else { cout << "FAILURE\n"; ret = -1; break; }
     }
@@ -71,7 +71,7 @@ int test_smul(bool show_flag = false)
         cout << "a:" << a << " "
              << "smul(a,a):" << y << " "
              << "a*a:" << (double)a*a << " ";
-        if (y == pnw::maxof<T>()) { cout << "(MAX) "; }
+        if (y == pnw::max_of<T>()) { cout << "(MAX) "; }
         else if (y >= a) { cout << "SUCCESS\n"; }
         else { cout << "FAILURE\n"; ret = -1; break; }
     }

@@ -61,9 +61,9 @@ int relate_unions(const box2<T> & a,
                            relate(combs[2], bbs[1]) };
 
     // min separations
-    T mseps[3] = { pnw::maxof<T>(),
-                   pnw::maxof<T>(),
-                   pnw::maxof<T>() };
+    T mseps[3] = { pnw::max_of<T>(),
+                   pnw::max_of<T>(),
+                   pnw::max_of<T>() };
 
     for (uint i = 0; i < N; i++) {
         for (uint j = 0; j < 3; j++) {
@@ -90,7 +90,7 @@ int relate_unions(const box2<T> & a,
 
     // choice index and separation
     uint min_i = 3;	// nothing found yet
-    T min_sep = pnw::maxof<T>();
+    T min_sep = pnw::max_of<T>();
 
     // determine best way of separating x, y and z
     for (uint i = 0; i < 3; i++) {
