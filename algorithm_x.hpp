@@ -372,6 +372,19 @@ typename IC::iterator find_if(IC c, UnaryPredicate p) { return find_if(begin(c),
 template <class IC, class UnaryPredicate>
 typename IC::iterator find_if_not(IC c, UnaryPredicate q) { return find_if_not(begin(c), end(c), q); }
 
+/** Check if `haystack` contains `needle`. */
+template<class Haystack,
+         typename Needle>
+inline pure bool can_find(const Haystack &haystack,
+                          const Needle &needle)
+{
+    for (const auto &e : haystack)
+    {
+        if (e == needle) { return true;  }
+    }
+    return false;
+}
+
 /*! Transformed Accumulate.
  * \see stackoverflow.com/questions/10592193/transform-and-accumulate
  * \alias zip_with
