@@ -42,8 +42,8 @@ typedef struct {
    */
   char * ccode;
 
-  uint   wcF:1;                 /**< Flags for wchar_t data. */
-  uint   freeF:1;               /**< Flags that \c p should be freed upon clearing. */
+  unsigned int wcF:1;                 /**< Flags for wchar_t data. */
+  unsigned int freeF:1;               /**< Flags that \c p should be freed upon clearing. */
 } xStr;
 
 /* ---------------------------- Group Separator ---------------------------- */
