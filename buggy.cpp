@@ -11,7 +11,7 @@ int* h(int* x)
     return x;
 }
 
-int* f()
+int* f(int i)
 {
     int x;
     int* xp = &x;
