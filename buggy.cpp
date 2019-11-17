@@ -6,10 +6,15 @@ int* g(int* x)
     return x;
 }
 
+int* h(int* x)
+{
+    return x;
+}
+
 int* f()
 {
     int x;
     int* xp = &x;
-    int* y = g(xp);
+    int* y = h(g(xp));
     return y;
 }
