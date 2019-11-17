@@ -8,7 +8,8 @@ int* g(int* x)
 
 int* f()
 {
-  int x;
-  int* xp = &x;
-  return g(xp);
+    int x;
+    int* xp = &x;
+    int* y = g(xp);
+    return y;
 }
