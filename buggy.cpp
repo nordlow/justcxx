@@ -8,12 +8,13 @@ int* g(int* x)
 
 int* h(int* x)
 {
-    return x;
+    if (*x == 3)
+        return x;
 }
 
 int* f()
 {
-    int x;
+    int x = 3;
     int* xp = &x;
     int* y = g(h(xp));
     return y;
