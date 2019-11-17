@@ -11,10 +11,10 @@ int* h(int* x)
     return x;
 }
 
-int* f(int i)
+int* f()
 {
     int x;
     int* xp = &x;
-    int* y = h(g(xp));
+    int* y = g(h(xp));
     return y;
 }
