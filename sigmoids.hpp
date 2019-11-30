@@ -12,5 +12,5 @@
 template<class T>
 inline T logistic_function(T a)
 {
-    return 1 / (1+std::exp(-a));
+    return 1 / (1 + std::exp(-a));
 }
