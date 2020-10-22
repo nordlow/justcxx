@@ -1,4 +1,4 @@
-// clang++ -Wall -std=c++2a -stdlib=libc++ -fimplicit-modules -fimplicit-module-maps main.cpp -o main
+// clang++ -Wall -std=c++2a -stdlib=libc++ -fimplicit-modules -fimplicit-module-maps hello_modules.cpp -o main
 
 import <iostream>;
 
